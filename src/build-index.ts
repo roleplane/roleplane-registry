@@ -37,7 +37,8 @@ export function buildIndex(entriesDir: string): Index {
       const entry = JSON.parse(
         readFileSync(join(authorDir, file), "utf8"),
       ) as IndexEntry;
-      validateEntry(key, entry);
+      const errors = entryShapeErrors(key, entry);
+      if (errors.length > 0) throw new Error(errors[0]);
       entries[key] = entry;
     }
   }
@@ -45,9 +46,11 @@ export function buildIndex(entriesDir: string): Index {
   return { schemaVersion: 1, entries };
 }
 
-function validateEntry(key: string, entry: IndexEntry): void {
-  const fail = (msg: string): never => {
-    throw new Error(`${key}: ${msg}`);
+/** Structural checks on a single Index Entry; returns errors prefixed with the entry key. */
+export function entryShapeErrors(key: string, entry: IndexEntry): string[] {
+  const errors: string[] = [];
+  const fail = (msg: string): void => {
+    errors.push(`${key}: ${msg}`);
   };
   if (entry.kind !== "skill" && entry.kind !== "team")
     fail(`kind must be "skill" or "team"`);
@@ -56,11 +59,14 @@ function validateEntry(key: string, entry: IndexEntry): void {
   if (!entry.path) fail("path is required");
   if (!entry.description) fail("description is required");
   if (!Array.isArray(entry.tags)) fail("tags must be an array");
-  if (!Array.isArray(entry.history) || entry.history.length === 0)
+  if (!Array.isArray(entry.history) || entry.history.length === 0) {
     fail("history must contain at least one {sha, version} pin");
+    return errors;
+  }
   for (const pin of entry.history) {
     if (!/^[0-9a-f]{40}$/.test(pin.sha))
       fail(`history sha "${pin.sha}" must be a full 40-char commit SHA`);
     if (!pin.version) fail("every history pin needs a version label");
   }
+  return errors;
 }

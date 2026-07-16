@@ -1,0 +1,6 @@
+{
+  "embedded-url.md": ["embedded-url"],
+  "instruction-override.md": ["instruction-override"],
+  "tool-invocation.md": ["tool-invocation"],
+  "webhook-exfiltration.md": ["embedded-url", "exfiltration", "webhook"]
+}

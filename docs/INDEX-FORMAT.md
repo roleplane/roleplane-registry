@@ -10,7 +10,7 @@ One JSON file per Index Entry:
 entries/<author>/<name>.json
 ```
 
-The entry key is `author/name`, derived from the file path — it is never declared inside the file. `<author>` must be the GitHub username of the Author (the `validate-entry` CI gate, once landed, verifies it matches the PR author; first-party entries use `roleplane`).
+The entry key is `author/name`, derived from the file path — it is never declared inside the file. `<author>` must be the GitHub username of the Author (the `validate-entry` CI gate verifies it matches the PR author — see `docs/VALIDATE-ENTRY.md`; first-party entries use `roleplane`).
 
 ## Entry fields
 

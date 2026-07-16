@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "tool-invocation",
+      "pattern": "\\b(?:run|execute|invoke|call|use)\\s+(?:the\\s+)?[\\w-]+\\s+tool\\b",
+      "flags": "gi",
+      "message": "tool-invocation phrasing — skills are pure knowledge and must not direct tool use"
+    },
+    {
+      "id": "embedded-url",
+      "pattern": "https?://\\S+",
+      "flags": "gi",
+      "message": "embedded URL — content that points agents at external resources deserves a close look"
+    },
+    {
+      "id": "webhook",
+      "pattern": "\\b(?:hooks\\.slack\\.com|discord(?:app)?\\.com/api/webhooks|webhook\\.site|api\\.telegram\\.org/bot)\\S*",
+      "flags": "gi",
+      "message": "webhook endpoint — a known outbound-delivery URL"
+    },
+    {
+      "id": "exfiltration",
+      "pattern": "\\b(?:send|post|upload|forward|transmit|exfiltrat)\\w*\\b[^.\\n]{0,80}?\\b(?:api[ -]?keys?|tokens?|secrets?|credentials?|passwords?|env(?:ironment)? var\\w*)\\b|\\b(?:api[ -]?keys?|tokens?|secrets?|credentials?|passwords?|env(?:ironment)? var\\w*)\\b[^.\\n]{0,80}?\\bto\\s+https?://",
+      "flags": "gi",
+      "message": "exfiltration pattern — instructs sending secrets or credentials somewhere"
+    },
+    {
+      "id": "instruction-override",
+      "pattern": "\\b(?:ignore|disregard|forget|override)\\s+(?:all\\s+|any\\s+|your\\s+|the\\s+)*(?:previous|prior|above|earlier|system)\\s+(?:instructions?|prompts?|rules?)\\b|\\bdisregard\\s+the\\s+system\\s+prompt\\b|\\byou\\s+are\\s+(?:now\\s+)?the\\s+orchestrator\\b",
+      "flags": "gi",
+      "message": "orchestrator-directed instruction — tries to override the agent's standing instructions"
+    }
+  ]
+}
