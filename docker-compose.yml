@@ -1,0 +1,10 @@
+# One container, one port — nginx serving the built index.json.
+# `docker compose up` from a fresh clone is the whole stack.
+#
+# Development doesn't need Docker at all: `mise run check` covers it.
+services:
+  registry:
+    build: .
+    container_name: roleplane-registry
+    ports:
+      - "8080:80"

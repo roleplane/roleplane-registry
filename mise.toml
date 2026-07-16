@@ -1,0 +1,65 @@
+# mise configuration — single entrypoint for tool versions and dev tasks.
+# Docs: https://mise.jdx.dev
+#
+#   mise install          # provision the toolchain below
+#   mise run install      # install project dependencies
+#   mise run check        # lint + typecheck + test, same as CI
+#   mise tasks            # list all available tasks
+
+[tools]
+node = "22"
+
+# ---------------------------------------------------------------------------
+# Install
+# ---------------------------------------------------------------------------
+[tasks.install]
+description = "Install dependencies from the npm lockfile"
+run = "npm ci"
+
+# ---------------------------------------------------------------------------
+# Build
+# ---------------------------------------------------------------------------
+[tasks.build]
+description = "Compile entries/ into index.json"
+run = "npm run build"
+
+# ---------------------------------------------------------------------------
+# Lint / typecheck / test
+# ---------------------------------------------------------------------------
+[tasks.lint]
+description = "ESLint"
+run = "npm run lint"
+
+[tasks.typecheck]
+description = "TypeScript type check"
+run = "npm run typecheck"
+
+[tasks.test]
+description = "Run the Vitest suite once (includes the index.json drift check)"
+run = "npm test"
+
+[tasks.check]
+description = "Everything CI runs: lint + typecheck + test"
+depends = ["lint", "typecheck", "test"]
+
+# ---------------------------------------------------------------------------
+# Docker (serve the built index as a static file, the shape clients consume)
+# ---------------------------------------------------------------------------
+[tasks.up]
+description = "Build and start the registry container with Docker Compose"
+run = "docker compose up --build -d"
+
+[tasks.down]
+description = "Stop the Docker Compose container"
+run = "docker compose down"
+
+[tasks.logs]
+description = "Tail Docker Compose logs"
+run = "docker compose logs -f"
+
+# ---------------------------------------------------------------------------
+# Housekeeping
+# ---------------------------------------------------------------------------
+[tasks.clean]
+description = "Remove installed dependencies and caches"
+run = "rm -rf node_modules coverage *.tsbuildinfo"
