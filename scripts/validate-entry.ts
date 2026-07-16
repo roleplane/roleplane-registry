@@ -25,7 +25,10 @@ const baseRef = process.env.BASE_REF ?? "origin/main";
 const token = process.env.GITHUB_TOKEN;
 
 function git(...args: string[]): string {
-  return execFileSync("git", args, { encoding: "utf8" }).trim();
+  return execFileSync("git", args, {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "ignore"],
+  }).trim();
 }
 
 const host: ContentHost = {
