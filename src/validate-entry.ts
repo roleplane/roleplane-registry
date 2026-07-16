@@ -66,6 +66,16 @@ export async function validateEntry(
     return { errors, warnings };
   }
 
+  // Version labels are unique across all of history, re-pin or not
+  const versions = new Set<string>();
+  for (const pin of entry.history) {
+    if (versions.has(pin.version))
+      fail(
+        `version "${pin.version}" appears more than once in history — the version label must change on every re-pin`,
+      );
+    versions.add(pin.version);
+  }
+
   // Re-pin gate: history is append-only and every re-pin changes the version label
   if (baseEntry) {
     const base = baseEntry.history;
@@ -137,6 +147,33 @@ export async function validateEntry(
       } else {
         errors.push(...teamConfigErrors(key, config));
         fetched.push(config);
+      }
+      // The team's markdown (agents, skills) is the real injection surface —
+      // pull it in so the lint below sees it, one directory level deep.
+      for (const name of files) {
+        if (name.endsWith(".md")) {
+          const md = await host.fetchFile(
+            entry.repo,
+            pin.sha,
+            `${entry.path}/${name}`,
+          );
+          if (md !== null) fetched.push(md);
+        } else if (!name.includes(".")) {
+          const sub = await host.listDir(
+            entry.repo,
+            pin.sha,
+            `${entry.path}/${name}`,
+          );
+          for (const subName of sub ?? []) {
+            if (!subName.endsWith(".md")) continue;
+            const md = await host.fetchFile(
+              entry.repo,
+              pin.sha,
+              `${entry.path}/${name}/${subName}`,
+            );
+            if (md !== null) fetched.push(md);
+          }
+        }
       }
     }
   }

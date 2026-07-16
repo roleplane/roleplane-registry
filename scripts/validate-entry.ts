@@ -67,18 +67,36 @@ function apiHeaders(): Record<string, string> {
   return token ? { authorization: `Bearer ${token}` } : {};
 }
 
-const changed = git(
+const isEntryFile = (f: string): boolean =>
+  /^entries\/[^/]+\/[^/]+\.json$/.test(f);
+
+const nameStatus = git(
   "diff",
-  "--name-only",
-  "--diff-filter=d",
+  "--name-status",
+  "--no-renames",
   `${baseRef}...HEAD`,
   "--",
   "entries/",
 )
   .split("\n")
-  .filter((f) => /^entries\/[^/]+\/[^/]+\.json$/.test(f));
+  .filter(Boolean)
+  .map((line) => line.split("\t") as [string, string]);
 
-if (changed.length === 0) {
+let failed = false;
+for (const [status, file] of nameStatus) {
+  if (status === "D" && isEntryFile(file)) {
+    failed = true;
+    console.log(
+      `::error file=${file}::${file} is deleted or renamed — Index Entries are never removed in a Publish PR; removal is a maintainer-only editorial act`,
+    );
+  }
+}
+
+const changed = nameStatus
+  .filter(([status, file]) => status !== "D" && isEntryFile(file))
+  .map(([, file]) => file);
+
+if (changed.length === 0 && !failed) {
   console.log("No Index Entries changed — nothing to validate.");
   process.exit(0);
 }
@@ -88,7 +106,7 @@ const existingKeys = git("ls-tree", "-r", "--name-only", baseRef, "--", "entries
   .filter((f) => f.endsWith(".json"))
   .map((f) => f.replace(/^entries\//, "").replace(/\.json$/, ""));
 
-function show(ref: string, file: string): IndexEntry | undefined {
+function entryAt(ref: string, file: string): IndexEntry | undefined {
   try {
     return JSON.parse(git("show", `${ref}:${file}`)) as IndexEntry;
   } catch {
@@ -96,17 +114,16 @@ function show(ref: string, file: string): IndexEntry | undefined {
   }
 }
 
-let failed = false;
 const summary: string[] = [];
 for (const file of changed) {
   const key = file.replace(/^entries\//, "").replace(/\.json$/, "");
   let result: ValidationResult;
-  const entry = show("HEAD", file);
+  const entry = entryAt("HEAD", file);
   if (!entry) {
     result = { errors: [`${key}: ${file} is not valid JSON`], warnings: [] };
   } else {
     result = await validateEntry(
-      { key, entry, baseEntry: show(baseRef, file), prAuthor, existingKeys },
+      { key, entry, baseEntry: entryAt(baseRef, file), prAuthor, existingKeys },
       host,
     );
   }
