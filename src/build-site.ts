@@ -35,6 +35,8 @@ export function buildSiteData(index: Index): SiteData {
 }
 
 function siteEntry(key: string, entry: IndexEntry): SiteEntry {
+  if (entry.history.length === 0)
+    throw new Error(`${key}: history must contain at least one pin`);
   const [author, name] = key.split("/");
   return {
     key,

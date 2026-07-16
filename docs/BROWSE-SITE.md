@@ -8,7 +8,7 @@ The public catalog site, generated from the built `index.json` and served from C
 - `authors/<author>/index.html` — that Author's entries.
 - `index.json` — the built index, served alongside the pages so clients can fetch the same shape from the site or the registry container.
 
-Every card shows the entry's description, Author (linking to their page), latest version, the exact install command (`roleplane skill add <repo>/<path>`), and the full version history. The `installs` count renders only when present in the index — the deferred download counter populates it later with no site change.
+Every card shows the entry's description, Author (linking to their page), latest version, the exact install command (`roleplane skill add <repo>/<path>`), and the full version history. The `installs` count renders only when present in the index — the deferred install counter populates it later with no site change.
 
 ## Building
 

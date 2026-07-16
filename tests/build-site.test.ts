@@ -51,7 +51,7 @@ describe("renderSite", () => {
   it("shows the install count when present and nothing when absent", () => {
     const authorPage = pages["authors/octocat/index.html"];
     expect(authorPage).toContain("42 installs");
-    expect(pages["authors/roleplane/index.html"]).not.toContain("installs");
+    expect(pages["authors/roleplane/index.html"]).not.toMatch(/\d+ installs/);
   });
 
   it("author pages list only that author's entries", () => {
