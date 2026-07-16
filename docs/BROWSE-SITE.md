@@ -21,4 +21,30 @@ npm run build:site   # index.json → dist/site
 
 ## Deploying
 
-`.github/workflows/deploy-site.yml` deploys `dist/site` to the `roleplane-registry` Cloudflare Pages project on every push to `main`, via `wrangler pages deploy`. It needs two repo secrets: `CLOUDFLARE_API_TOKEN` (a token with Pages edit permission) and `CLOUDFLARE_ACCOUNT_ID`.
+`.github/workflows/deploy-site.yml` deploys `dist/site` to the `roleplane-registry` Cloudflare Pages project on every push to `main`, via `wrangler pages deploy`.
+
+### One-time Cloudflare setup
+
+1. **Account ID** — Cloudflare dashboard → any zone (or Workers & Pages) → the right-hand sidebar shows *Account ID*. Copy it.
+2. **API token** — dashboard → My Profile → API Tokens → *Create Token* → *Create Custom Token* with permission **Account → Cloudflare Pages → Edit**, scoped to your account. Copy the token (shown once).
+3. **Create the Pages project** (once, from a machine with the token):
+
+   ```
+   export CLOUDFLARE_API_TOKEN=<token> CLOUDFLARE_ACCOUNT_ID=<account-id>
+   npx wrangler pages project create roleplane-registry --production-branch main
+   ```
+
+   Do **not** connect the project to the GitHub repo in the dashboard — deploys come from the workflow (Direct Upload), and connecting git would create a competing build.
+4. **GitHub repo secrets** — repo → Settings → Secrets and variables → Actions → add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, or:
+
+   ```
+   gh secret set CLOUDFLARE_API_TOKEN
+   gh secret set CLOUDFLARE_ACCOUNT_ID
+   ```
+
+After that, every merge to `main` deploys automatically to `https://roleplane-registry.pages.dev` (add a custom domain in the Pages project settings if wanted). To verify or deploy manually:
+
+```
+npm run build && npm run build:site
+npx wrangler pages deploy dist/site --project-name roleplane-registry
+```
