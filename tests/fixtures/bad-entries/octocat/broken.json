@@ -1,0 +1,8 @@
+{
+  "kind": "skill",
+  "repo": "octocat/agent-stuff",
+  "path": "skills/broken.md",
+  "description": "A skill pinned to a short SHA.",
+  "tags": [],
+  "history": [{ "sha": "abc123", "version": "1.0.0" }]
+}

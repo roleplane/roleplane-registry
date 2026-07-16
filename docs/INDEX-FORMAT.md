@@ -10,7 +10,7 @@ One JSON file per Index Entry:
 entries/<author>/<name>.json
 ```
 
-The entry key is `author/name`, derived from the file path — it is never declared inside the file. `<author>` must be the GitHub username of the Author (CI verifies it matches the PR author; first-party entries use `roleplane`).
+The entry key is `author/name`, derived from the file path — it is never declared inside the file. `<author>` must be the GitHub username of the Author (the `validate-entry` CI gate, once landed, verifies it matches the PR author; first-party entries use `roleplane`).
 
 ## Entry fields
 
@@ -48,4 +48,4 @@ The entry key is `author/name`, derived from the file path — it is never decla
 }
 ```
 
-Entries are keyed `author/name` and sorted by key. `installs` is omitted when absent and passed through when present — clients must tolerate both, so the counter can arrive later with no schema migration. `index.json` is committed; CI fails if it drifts from a rebuild of `entries/`.
+Entries are keyed `author/name` and sorted by key. `installs` is omitted when absent and passed through when present — clients must tolerate both, so the counter can arrive later with no schema migration. `index.json` is committed; the test suite fails if it drifts from a rebuild of `entries/`.

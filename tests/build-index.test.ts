@@ -20,6 +20,12 @@ describe("buildIndex", () => {
     expect(built.entries["octocat/growth-team"].installs).toBe(42);
   });
 
+  it("rejects an entry with a malformed history pin", () => {
+    expect(() => buildIndex(join(fixtures, "bad-entries"))).toThrow(
+      /octocat\/broken.*40-char commit SHA/,
+    );
+  });
+
   it("committed index.json matches a rebuild from entries/ (no drift)", () => {
     const root = join(import.meta.dirname, "..");
     const committed = JSON.parse(
