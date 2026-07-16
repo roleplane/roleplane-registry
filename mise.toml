@@ -23,6 +23,10 @@ run = "npm ci"
 description = "Compile entries/ into index.json"
 run = "npm run build"
 
+[tasks.build-site]
+description = "Generate the static browse site into dist/site from index.json"
+run = "npm run build:site"
+
 # ---------------------------------------------------------------------------
 # Lint / typecheck / test
 # ---------------------------------------------------------------------------
