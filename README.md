@@ -25,7 +25,7 @@ mise run check        # lint + typecheck + test, same as CI
 
 ## Docker
 
-`docker compose up --build` (or `mise run up`) builds the index and serves it with nginx at <http://localhost:8080/index.json> — the same static shape any client fetches. Development doesn't need Docker.
+`docker compose up --build` (or `mise run up`) builds the index and serves it with nginx at <http://localhost:8089/index.json> — the same static shape any client fetches. Development doesn't need Docker.
 
 ## License
 
