@@ -1,0 +1,247 @@
+{
+  "schemaVersion": 1,
+  "entries": {
+    "roleplane/blog-craft": {
+      "kind": "skill",
+      "repo": "roleplane/roleplane",
+      "path": "templates/teams/content/skills/blog-craft.md",
+      "description": "How to write a blog post people finish reading.",
+      "tags": [
+        "writing",
+        "content"
+      ],
+      "history": [
+        {
+          "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    "roleplane/business-critique": {
+      "kind": "skill",
+      "repo": "roleplane/roleplane",
+      "path": "templates/teams/business-planning/skills/business-critique.md",
+      "description": "How to pressure-test a business plan — find the load-bearing assumption and what to test first.",
+      "tags": [
+        "business",
+        "planning",
+        "critique"
+      ],
+      "history": [
+        {
+          "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    "roleplane/canvas-method": {
+      "kind": "skill",
+      "repo": "roleplane/roleplane",
+      "path": "templates/teams/business-planning/skills/canvas-method.md",
+      "description": "How to fill a business-model canvas — the nine blocks and the order that makes them cohere.",
+      "tags": [
+        "business",
+        "planning"
+      ],
+      "history": [
+        {
+          "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    "roleplane/competitor-analysis": {
+      "kind": "skill",
+      "repo": "roleplane/roleplane",
+      "path": "templates/teams/market-research/skills/competitor-analysis.md",
+      "description": "A framework for analyzing a competitor and finding a differentiation angle.",
+      "tags": [
+        "research",
+        "competitors"
+      ],
+      "history": [
+        {
+          "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    "roleplane/content-editing": {
+      "kind": "skill",
+      "repo": "roleplane/roleplane",
+      "path": "templates/teams/content/skills/content-editing.md",
+      "description": "How to edit content for clarity — cut, order, and keep the writer's voice.",
+      "tags": [
+        "writing",
+        "editing"
+      ],
+      "history": [
+        {
+          "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    "roleplane/conversion-copy": {
+      "kind": "skill",
+      "repo": "roleplane/roleplane",
+      "path": "templates/teams/marketing-launch/skills/conversion-copy.md",
+      "description": "How to write landing copy that converts — hero, benefits, objections, one call to action.",
+      "tags": [
+        "marketing",
+        "copywriting"
+      ],
+      "history": [
+        {
+          "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    "roleplane/copy-editing": {
+      "kind": "skill",
+      "repo": "roleplane/roleplane",
+      "path": "templates/teams/marketing-launch/skills/copy-editing.md",
+      "description": "How to edit copy — cut, sharpen, and keep the writer's voice.",
+      "tags": [
+        "marketing",
+        "editing"
+      ],
+      "history": [
+        {
+          "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    "roleplane/how-to-writing": {
+      "kind": "skill",
+      "repo": "roleplane/roleplane",
+      "path": "templates/teams/content/skills/how-to-writing.md",
+      "description": "How to write a step-by-step guide a beginner can actually follow.",
+      "tags": [
+        "writing",
+        "content"
+      ],
+      "history": [
+        {
+          "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    "roleplane/interview-method": {
+      "kind": "skill",
+      "repo": "roleplane/roleplane",
+      "path": "templates/teams/onboarding/skills/interview-method.md",
+      "description": "How to run a short founder interview that yields a usable brief.",
+      "tags": [
+        "onboarding",
+        "interviewing"
+      ],
+      "history": [
+        {
+          "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    "roleplane/launch-writing": {
+      "kind": "skill",
+      "repo": "roleplane/roleplane",
+      "path": "templates/teams/marketing-launch/skills/launch-writing.md",
+      "description": "How to write a launch announcement people finish reading.",
+      "tags": [
+        "marketing",
+        "writing"
+      ],
+      "history": [
+        {
+          "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    "roleplane/newsletter-writing": {
+      "kind": "skill",
+      "repo": "roleplane/roleplane",
+      "path": "templates/teams/content/skills/newsletter-writing.md",
+      "description": "How to write an email newsletter issue people open and finish.",
+      "tags": [
+        "writing",
+        "content",
+        "email"
+      ],
+      "history": [
+        {
+          "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    "roleplane/positioning-method": {
+      "kind": "skill",
+      "repo": "roleplane/roleplane",
+      "path": "templates/teams/marketing-launch/skills/positioning-method.md",
+      "description": "A method for positioning a product — alternatives, unique value, best-fit customer, category.",
+      "tags": [
+        "marketing",
+        "positioning"
+      ],
+      "history": [
+        {
+          "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    "roleplane/pricing-strategy": {
+      "kind": "skill",
+      "repo": "roleplane/roleplane",
+      "path": "templates/teams/business-planning/skills/pricing-strategy.md",
+      "description": "How to explore pricing — value-based anchors, models, and the trade-offs of each.",
+      "tags": [
+        "business",
+        "pricing"
+      ],
+      "history": [
+        {
+          "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    "roleplane/research-writing": {
+      "kind": "skill",
+      "repo": "roleplane/roleplane",
+      "path": "templates/teams/market-research/skills/research-writing.md",
+      "description": "How to write research a busy founder can act on.",
+      "tags": [
+        "research",
+        "writing"
+      ],
+      "history": [
+        {
+          "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    "roleplane/source-vetting": {
+      "kind": "skill",
+      "repo": "roleplane/roleplane",
+      "path": "templates/teams/content/skills/source-vetting.md",
+      "description": "How to judge whether a source is trustworthy enough to cite.",
+      "tags": [
+        "research",
+        "sources"
+      ],
+      "history": [
+        {
+          "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+          "version": "1.0.0"
+        }
+      ]
+    }
+  }
+}

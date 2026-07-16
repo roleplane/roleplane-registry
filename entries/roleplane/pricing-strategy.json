@@ -1,0 +1,16 @@
+{
+  "kind": "skill",
+  "repo": "roleplane/roleplane",
+  "path": "templates/teams/business-planning/skills/pricing-strategy.md",
+  "description": "How to explore pricing — value-based anchors, models, and the trade-offs of each.",
+  "tags": [
+    "business",
+    "pricing"
+  ],
+  "history": [
+    {
+      "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+      "version": "1.0.0"
+    }
+  ]
+}

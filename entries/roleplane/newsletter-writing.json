@@ -1,0 +1,17 @@
+{
+  "kind": "skill",
+  "repo": "roleplane/roleplane",
+  "path": "templates/teams/content/skills/newsletter-writing.md",
+  "description": "How to write an email newsletter issue people open and finish.",
+  "tags": [
+    "writing",
+    "content",
+    "email"
+  ],
+  "history": [
+    {
+      "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+      "version": "1.0.0"
+    }
+  ]
+}

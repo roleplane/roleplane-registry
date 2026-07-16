@@ -1,0 +1,12 @@
+{
+  "kind": "team",
+  "repo": "octocat/agent-stuff",
+  "path": "teams/growth",
+  "description": "A growth experiments team.",
+  "tags": ["growth"],
+  "history": [
+    { "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "version": "0.1.0" },
+    { "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "version": "0.2.0" }
+  ],
+  "installs": 42
+}

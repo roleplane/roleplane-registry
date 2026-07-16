@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "entries": {
+    "octocat/growth-team": {
+      "kind": "team",
+      "repo": "octocat/agent-stuff",
+      "path": "teams/growth",
+      "description": "A growth experiments team.",
+      "tags": ["growth"],
+      "history": [
+        { "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "version": "0.1.0" },
+        { "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "version": "0.2.0" }
+      ],
+      "installs": 42
+    },
+    "roleplane/blog-craft": {
+      "kind": "skill",
+      "repo": "roleplane/roleplane",
+      "path": "templates/teams/content/skills/blog-craft.md",
+      "description": "How to write a blog post people finish reading.",
+      "tags": ["writing", "content"],
+      "history": [
+        { "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b", "version": "1.0.0" }
+      ]
+    }
+  }
+}

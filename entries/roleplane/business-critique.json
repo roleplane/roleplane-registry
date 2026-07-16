@@ -1,0 +1,17 @@
+{
+  "kind": "skill",
+  "repo": "roleplane/roleplane",
+  "path": "templates/teams/business-planning/skills/business-critique.md",
+  "description": "How to pressure-test a business plan — find the load-bearing assumption and what to test first.",
+  "tags": [
+    "business",
+    "planning",
+    "critique"
+  ],
+  "history": [
+    {
+      "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+      "version": "1.0.0"
+    }
+  ]
+}

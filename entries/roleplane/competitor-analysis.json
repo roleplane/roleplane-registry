@@ -1,0 +1,16 @@
+{
+  "kind": "skill",
+  "repo": "roleplane/roleplane",
+  "path": "templates/teams/market-research/skills/competitor-analysis.md",
+  "description": "A framework for analyzing a competitor and finding a differentiation angle.",
+  "tags": [
+    "research",
+    "competitors"
+  ],
+  "history": [
+    {
+      "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+      "version": "1.0.0"
+    }
+  ]
+}

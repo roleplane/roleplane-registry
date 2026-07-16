@@ -1,0 +1,16 @@
+{
+  "kind": "skill",
+  "repo": "roleplane/roleplane",
+  "path": "templates/teams/business-planning/skills/canvas-method.md",
+  "description": "How to fill a business-model canvas — the nine blocks and the order that makes them cohere.",
+  "tags": [
+    "business",
+    "planning"
+  ],
+  "history": [
+    {
+      "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+      "version": "1.0.0"
+    }
+  ]
+}

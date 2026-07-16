@@ -1,0 +1,16 @@
+{
+  "kind": "skill",
+  "repo": "roleplane/roleplane",
+  "path": "templates/teams/marketing-launch/skills/conversion-copy.md",
+  "description": "How to write landing copy that converts — hero, benefits, objections, one call to action.",
+  "tags": [
+    "marketing",
+    "copywriting"
+  ],
+  "history": [
+    {
+      "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+      "version": "1.0.0"
+    }
+  ]
+}

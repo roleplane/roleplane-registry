@@ -1,0 +1,16 @@
+{
+  "kind": "skill",
+  "repo": "roleplane/roleplane",
+  "path": "templates/teams/marketing-launch/skills/positioning-method.md",
+  "description": "A method for positioning a product — alternatives, unique value, best-fit customer, category.",
+  "tags": [
+    "marketing",
+    "positioning"
+  ],
+  "history": [
+    {
+      "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+      "version": "1.0.0"
+    }
+  ]
+}
