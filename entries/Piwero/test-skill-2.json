@@ -1,0 +1,15 @@
+{
+  "kind": "skill",
+  "repo": "Piwero/roleplane-skills",
+  "path": "skills/test-skill-2.md",
+  "description": "dummy skill",
+  "tags": [
+    "dummy"
+  ],
+  "history": [
+    {
+      "sha": "3b807a5472f19d9e53c62787c052cf60fea0cb22",
+      "version": "0.1.0"
+    }
+  ]
+}
