@@ -2,24 +2,24 @@ import type { Index, IndexEntry, Pin } from "./build-index.ts";
 import { esc } from "./html.ts";
 
 export interface SiteEntry {
-  key: string;
-  author: string;
-  name: string;
-  kind: "skill" | "team";
-  repo: string;
-  path: string;
-  description: string;
-  tags: string[];
-  installCommand: string;
-  latestVersion: string;
-  history: Pin[];
-  installs?: number;
+    key: string;
+    author: string;
+    name: string;
+    kind: "skill" | "team";
+    repo: string;
+    path: string;
+    description: string;
+    tags: string[];
+    installCommand: string;
+    latestVersion: string;
+    history: Pin[];
+    installs?: number;
 }
 
 export interface SiteData {
-  entries: SiteEntry[];
-  authors: string[];
-  tags: string[];
+    entries: SiteEntry[];
+    authors: string[];
+    tags: string[];
 }
 
 /**
@@ -27,32 +27,32 @@ export interface SiteData {
  * one flat entry list (sorted by key) plus the author and tag vocabularies.
  */
 export function buildSiteData(index: Index): SiteData {
-  const entries = Object.entries(index.entries)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, entry]) => siteEntry(key, entry));
-  const authors = [...new Set(entries.map((e) => e.author))].sort();
-  const tags = [...new Set(entries.flatMap((e) => e.tags))].sort();
-  return { entries, authors, tags };
+    const entries = Object.entries(index.entries)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, entry]) => siteEntry(key, entry));
+    const authors = [...new Set(entries.map((e) => e.author))].sort();
+    const tags = [...new Set(entries.flatMap((e) => e.tags))].sort();
+    return { entries, authors, tags };
 }
 
 function siteEntry(key: string, entry: IndexEntry): SiteEntry {
-  if (entry.history.length === 0)
-    throw new Error(`${key}: history must contain at least one pin`);
-  const [author, name] = key.split("/");
-  return {
-    key,
-    author,
-    name,
-    kind: entry.kind,
-    repo: entry.repo,
-    path: entry.path,
-    description: entry.description,
-    tags: entry.tags,
-    installCommand: `roleplane skill add ${entry.repo}/${entry.path}`,
-    latestVersion: entry.history[entry.history.length - 1].version,
-    history: entry.history,
-    ...(entry.installs !== undefined ? { installs: entry.installs } : {}),
-  };
+    if (entry.history.length === 0)
+        throw new Error(`${key}: history must contain at least one pin`);
+    const [author, name] = key.split("/");
+    return {
+        key,
+        author,
+        name,
+        kind: entry.kind,
+        repo: entry.repo,
+        path: entry.path,
+        description: entry.description,
+        tags: entry.tags,
+        installCommand: `roleplane skill add ${entry.repo}/${entry.path}`,
+        latestVersion: entry.history[entry.history.length - 1].version,
+        history: entry.history,
+        ...(entry.installs !== undefined ? { installs: entry.installs } : {}),
+    };
 }
 
 /**
@@ -61,37 +61,37 @@ function siteEntry(key: string, entry: IndexEntry): SiteEntry {
  * inline styles and script, no external requests.
  */
 export function renderSite(data: SiteData): Record<string, string> {
-  const pages: Record<string, string> = {
-    "index.html": page(
-      "Roleplane Registry",
-      "",
-      `<p><a href="publish/index.html">Publish a skill &rarr;</a></p>
+    const pages: Record<string, string> = {
+        "index.html": page(
+            "Roleplane Registry",
+            "",
+            `<p><a href="publish/index.html">Publish a skill &rarr;</a></p>
 ${searchControls(data)}
 <main id="catalog">
 ${data.entries.map((e) => card(e, "")).join("\n")}
 </main>
 ${filterScript()}`,
-    ),
-    "publish/index.html": publishPage(),
-  };
-  for (const author of data.authors) {
-    const own = data.entries.filter((e) => e.author === author);
-    pages[`authors/${author}/index.html`] = page(
-      `${author} — Roleplane Registry`,
-      "../../",
-      `<p><a href="../../index.html">&larr; All entries</a></p>
+        ),
+        "publish/index.html": publishPage(),
+    };
+    for (const author of data.authors) {
+        const own = data.entries.filter((e) => e.author === author);
+        pages[`authors/${author}/index.html`] = page(
+            `${author} — Roleplane Registry`,
+            "../../",
+            `<p><a href="../../index.html">&larr; All entries</a></p>
 <h2>${esc(author)}</h2>
 <main>
 ${own.map((e) => card(e, "../../")).join("\n")}
 </main>`,
-    );
-  }
-  return pages;
+        );
+    }
+    return pages;
 }
 
 function card(e: SiteEntry, root: string): string {
-  const haystack = [e.key, e.description, ...e.tags].join(" ").toLowerCase();
-  return `<article class="card" data-author="${esc(e.author)}" data-tags="${esc(e.tags.join(" "))}" data-search="${esc(haystack)}">
+    const haystack = [e.key, e.description, ...e.tags].join(" ").toLowerCase();
+    return `<article class="card" data-author="${esc(e.author)}" data-tags="${esc(e.tags.join(" "))}" data-search="${esc(haystack)}">
   <header>
     <h3>${esc(e.name)} <span class="kind">${e.kind}</span></h3>
     <p class="byline">by <a href="${root}authors/${esc(e.author)}/index.html">${esc(e.author)}</a> &middot; v${esc(e.latestVersion)}${e.installs !== undefined ? ` &middot; ${e.installs} installs` : ""}</p>
@@ -114,15 +114,15 @@ ${e.history.map((p) => `      <li><code>${esc(p.version)}</code> &mdash; <code>$
  * /publish Function — no client-side requests.
  */
 function publishPage(): string {
-  return page(
-    "Publish — Roleplane Registry",
-    "../",
-    `<p><a href="../index.html">&larr; All entries</a></p>
+    return page(
+        "Publish — Roleplane Registry",
+        "../",
+        `<p><a href="../index.html">&larr; All entries</a></p>
 <h2>Publish a Skill</h2>
 <p>Publishing commits the skill file to a <code>roleplane-skills</code> repo under <em>your</em> GitHub account and opens the index-entry PR as you — attribution is the PR authorship. The registry stores nothing: your token lives only in a short-lived cookie and is discarded after use.</p>
 <p><a class="login" href="/auth/login">Log in with GitHub</a> first, then fill in the form.</p>
 <form action="/publish" method="post" class="publish-form">
-  <label>Name<br><input name="name" required pattern="[a-z0-9][a-z0-9-]*" placeholder="uk-english-tone"></label>
+  <label>Name<br><input name="name" required pattern="[a-z0-9][a-z0-9-]*" placeholder="elevator-pitch"></label>
   <label>Description<br><input name="description" required placeholder="What the skill does, in one line"></label>
   <label>Tags (comma-separated)<br><input name="tags" placeholder="tone, writing"></label>
   <label>Version<br><input name="version" required value="0.1.0"></label>
@@ -140,13 +140,13 @@ function publishPage(): string {
   <label>Version<br><input name="version" required value="1.0.0"></label>
   <button type="submit">Publish team</button>
 </form>`,
-  );
+    );
 }
 
 function searchControls(data: SiteData): string {
-  const option = (value: string): string =>
-    `<option value="${esc(value)}">${esc(value)}</option>`;
-  return `<form id="filters">
+    const option = (value: string): string =>
+        `<option value="${esc(value)}">${esc(value)}</option>`;
+    return `<form id="filters">
   <input id="q" type="search" placeholder="Search by name, tag, or description" aria-label="Search">
   <select id="author" aria-label="Filter by author"><option value="">All authors</option>${data.authors.map(option).join("")}</select>
   <select id="tag" aria-label="Filter by tag"><option value="">All tags</option>${data.tags.map(option).join("")}</select>
@@ -154,7 +154,7 @@ function searchControls(data: SiteData): string {
 }
 
 function filterScript(): string {
-  return `<script>
+    return `<script>
 (function () {
   var q = document.getElementById("q");
   var author = document.getElementById("author");
@@ -177,7 +177,7 @@ function filterScript(): string {
 }
 
 function page(title: string, root: string, body: string): string {
-  return `<!doctype html>
+    return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
