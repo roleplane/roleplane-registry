@@ -6,10 +6,12 @@ own token** — commits the skill file to a `roleplane-skills` repo under their
 account and opens the index-entry PR against this registry **as the author**.
 Attribution is the PR authorship, unforgeable.
 
-Teams publish **by pointer** (no web builder): the same page takes a repo +
-path to an existing team directory, and `/publish-team` opens the index-entry
-PR (kind=team) pinned to the repo's current default-branch SHA. Nothing is
-written to the author's repo; deep validation stays in CI at the pinned SHA.
+Teams publish **by pointer** (no web builder): paste one GitHub directory URL
+(`github.com/owner/repo/tree/branch/path`, or bare `owner/repo/path`) and
+`/publish-team` opens the index-entry PR (kind=team) pinned to that branch's
+current tip (default branch when the paste names none), deriving the entry
+name from the directory unless overridden. Nothing is written to the author's
+repo; deep validation stays in CI at the pinned SHA.
 
 ## Statelessness
 

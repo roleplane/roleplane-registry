@@ -132,9 +132,8 @@ function publishPage(): string {
 <h2>Publish a Team by pointer</h2>
 <p>Teams stay authored in your own Workspace. Point at an existing team directory in your repo and the app opens the index-entry PR as you, pinned to the repo's current SHA. Deep validation happens in CI.</p>
 <form action="/publish-team" method="post" class="publish-form">
-  <label>Name<br><input name="name" required pattern="[a-z0-9][a-z0-9-]*" placeholder="growth-team"></label>
-  <label>Repo (owner/repo or URL)<br><input name="repo" required placeholder="https://github.com/you/agent-stuff"></label>
-  <label>Path to the team directory<br><input name="path" required placeholder="teams/growth"></label>
+  <label>Team directory URL<br><input name="url" required placeholder="https://github.com/you/agent-stuff/tree/main/teams/growth"></label>
+  <label>Name (optional — derived from the directory name if left blank)<br><input name="name" pattern="[a-z0-9][a-z0-9-]*" placeholder="growth-team"></label>
   <label>Description<br><input name="description" required placeholder="What the team does, in one line"></label>
   <label>Tags (comma-separated)<br><input name="tags" placeholder="growth, marketing"></label>
   <label>Version<br><input name="version" required value="1.0.0"></label>

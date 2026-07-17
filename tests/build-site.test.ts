@@ -52,8 +52,7 @@ describe("renderSite", () => {
     expect(publish).toMatch(
       /<form[^>]*action="\/publish-team"[^>]*method="post"/i,
     );
-    expect(publish).toContain('name="repo"');
-    expect(publish).toContain('name="path"');
+    expect(publish).toContain('name="url"');
   });
 
   it("every card shows the exact install command and version history", () => {

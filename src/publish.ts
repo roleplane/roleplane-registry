@@ -138,25 +138,28 @@ export async function handlePublishTeam(
     return htmlResponse(401, "Not logged in", "<p>Log in with GitHub first.</p>");
 
   const fields = new URLSearchParams(await request.text());
-  const name = (fields.get("name") ?? "").trim();
   const description = (fields.get("description") ?? "").trim();
   const version = (fields.get("version") ?? "").trim();
-  const repo = parseRepo((fields.get("repo") ?? "").trim());
-  const path = (fields.get("path") ?? "").trim().replace(/^\/+|\/+$/g, "");
+  const location = parseTeamUrl((fields.get("url") ?? "").trim());
+  // The name defaults to the team directory's own name.
+  const name =
+    (fields.get("name") ?? "").trim() ||
+    (location ? location.path.split("/").pop()! : "");
   const tags = (fields.get("tags") ?? "")
     .split(",")
     .map((t) => t.trim())
     .filter(Boolean);
 
   const invalid: string[] = [];
+  if (!location)
+    invalid.push(
+      "url must be a GitHub directory URL (github.com/owner/repo/tree/branch/path) or owner/repo/path",
+    );
   if (!/^[a-z0-9][a-z0-9-]*$/.test(name))
     invalid.push("name must be lowercase letters, digits, and hyphens");
-  if (!repo)
-    invalid.push('repo must be "owner/repo" or a github.com repo URL');
-  if (!path) invalid.push("path to the team directory is required");
   if (!description) invalid.push("description is required");
   if (!version) invalid.push("version is required");
-  if (invalid.length > 0)
+  if (invalid.length > 0 || !location)
     return htmlResponse(
       400,
       "Invalid team",
@@ -167,8 +170,7 @@ export async function handlePublishTeam(
   return publishResponse(() =>
     publishTeam(gh, env.registryRepo, envSleep(env), {
       name,
-      repo: repo!,
-      path,
+      ...location,
       description,
       version,
       tags,
@@ -176,12 +178,27 @@ export async function handlePublishTeam(
   );
 }
 
-/** "owner/repo", or any github.com URL to the repo — normalized to "owner/repo". */
-function parseRepo(input: string): string | null {
-  const match = /^(?:https?:\/\/github\.com\/)?([\w.-]+)\/([\w.-]+?)(?:\.git)?\/?$/.exec(
-    input,
-  );
-  return match ? `${match[1]}/${match[2]}` : null;
+/**
+ * One pasted location → where the team lives. Accepts a GitHub directory URL
+ * (`github.com/owner/repo/tree/branch/path…`) or the bare `owner/repo/path…`
+ * shorthand (no branch — the default branch is pinned). Branch names
+ * containing "/" are read as their first segment — a known limitation.
+ */
+function parseTeamUrl(
+  input: string,
+): { repo: string; path: string; branch?: string } | null {
+  const cleaned = input.replace(/^https?:\/\/(www\.)?github\.com\//, "");
+  if (/^https?:\/\//.test(cleaned) || /\s/.test(cleaned)) return null;
+  const segments = cleaned.split("/").filter(Boolean);
+  if (segments.length < 3) return null;
+  const [owner, repoName, ...rest] = segments;
+  const repo = `${owner}/${repoName}`;
+  if (rest[0] === "tree") {
+    const [, branch, ...path] = rest;
+    if (!branch || path.length === 0) return null;
+    return { repo, branch, path: path.join("/") };
+  }
+  return { repo, path: rest.join("/") };
 }
 
 function envSleep(env: PublishEnv): (ms: number) => Promise<void> {
@@ -296,6 +313,7 @@ interface TeamPayload {
   name: string;
   repo: string;
   path: string;
+  branch?: string;
   description: string;
   version: string;
   tags: string[];
@@ -323,18 +341,23 @@ async function publishTeam(
     { kind: "team", repo: team.repo, path: team.path },
   );
 
-  // Pin the SHA current at publish time: tip of the repo's default branch.
-  const { default_branch } = (await gh.request(
-    "GET",
-    `/repos/${team.repo}`,
-    undefined,
-    "reading the referenced repo",
-  )) as { default_branch: string };
+  // Pin the SHA current at publish time: tip of the URL's branch, or of the
+  // repo's default branch when the paste didn't name one.
+  let branch = team.branch;
+  if (!branch) {
+    const { default_branch } = (await gh.request(
+      "GET",
+      `/repos/${team.repo}`,
+      undefined,
+      "reading the referenced repo",
+    )) as { default_branch: string };
+    branch = default_branch;
+  }
   const tip = (await gh.request(
     "GET",
-    `/repos/${team.repo}/git/ref/heads/${default_branch}`,
+    `/repos/${team.repo}/git/ref/heads/${branch}`,
     undefined,
-    "reading the referenced repo's default branch",
+    `reading the tip of ${branch} in the referenced repo`,
   )) as { object: { sha: string } };
   const sha = tip.object.sha;
 

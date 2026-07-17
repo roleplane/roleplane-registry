@@ -439,8 +439,7 @@ describe("handlePublishTeam", () => {
 
   const payload = {
     name: "growth-team",
-    repo: "https://github.com/octocat/agent-stuff",
-    path: "teams/growth",
+    url: "https://github.com/octocat/agent-stuff/tree/main/teams/growth",
     description: "A growth marketing team",
     tags: "growth, marketing",
     version: "1.0.0",
@@ -534,10 +533,36 @@ describe("handlePublishTeam", () => {
     expect(cookies.some((c) => c.startsWith("gh_token=;"))).toBe(true);
   });
 
-  it("accepts a bare owner/repo and strips surrounding slashes from the path", async () => {
-    const github = fakeGitHub(happyPathRoutes());
+  it("pins the branch named in the URL instead of the default branch", async () => {
+    const routes = happyPathRoutes();
+    delete routes[`GET ${api}/repos/octocat/agent-stuff`];
+    delete routes[`GET ${api}/repos/octocat/agent-stuff/git/ref/heads/main`];
+    routes[`GET ${api}/repos/octocat/agent-stuff/git/ref/heads/dev`] = () => ({
+      json: { object: { sha: pinSha } },
+    });
+    const github = fakeGitHub(routes);
     const res = await handlePublishTeam(
-      form({ ...payload, repo: "octocat/agent-stuff", path: "/teams/growth/" }),
+      form({
+        ...payload,
+        url: "https://github.com/octocat/agent-stuff/tree/dev/teams/growth",
+      }),
+      env(github.fetch),
+    );
+    expect(res.status).toBe(200);
+    // The default branch was never consulted.
+    expect(
+      github.calls.some((c) => c.url === `${api}/repos/octocat/agent-stuff`),
+    ).toBe(false);
+  });
+
+  it("accepts a bare owner/repo/path shorthand and derives the name when omitted", async () => {
+    const routes = happyPathRoutes();
+    routes[
+      `GET ${api}/repos/octocat/agent-stuff/contents/teams/growth-team?ref=${pinSha}`
+    ] = () => ({ json: [{ name: "config.yaml" }] });
+    const github = fakeGitHub(routes);
+    const res = await handlePublishTeam(
+      form({ ...payload, name: "", url: "octocat/agent-stuff/teams/growth-team" }),
       env(github.fetch),
     );
     expect(res.status).toBe(200);
@@ -548,7 +573,7 @@ describe("handlePublishTeam", () => {
       fromB64((entryPut.body as { content: string }).content),
     );
     expect(entry.repo).toBe("octocat/agent-stuff");
-    expect(entry.path).toBe("teams/growth");
+    expect(entry.path).toBe("teams/growth-team");
   });
 
   it("rejects when the team directory doesn't exist at the pinned SHA", async () => {
@@ -588,14 +613,16 @@ describe("handlePublishTeam", () => {
     expect(github.calls.every((c) => c.method === "GET")).toBe(true);
   });
 
-  it("rejects an unparseable repo before calling GitHub", async () => {
+  it("rejects an unparseable URL or one without a directory path", async () => {
     const github = fakeGitHub({});
-    const res = await handlePublishTeam(
-      form({ ...payload, repo: "not a repo" }),
-      env(github.fetch),
-    );
-    expect(res.status).toBe(400);
-    expect(github.calls).toEqual([]);
+    for (const url of ["not a url", "https://github.com/octocat/agent-stuff"]) {
+      const res = await handlePublishTeam(
+        form({ ...payload, url }),
+        env(github.fetch),
+      );
+      expect(res.status).toBe(400);
+      expect(github.calls).toEqual([]);
+    }
   });
 
   it("rejects a request without a token cookie", async () => {
