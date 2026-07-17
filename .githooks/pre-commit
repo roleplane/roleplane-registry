@@ -1,0 +1,10 @@
+#!/bin/sh
+# Run the same checks as CI before every commit: lint + typecheck + test.
+# Wired up by `mise run install` (git config core.hooksPath .githooks).
+# Skip in a pinch with `git commit --no-verify`.
+set -e
+
+if command -v mise >/dev/null 2>&1; then
+  exec mise run check
+fi
+npm run lint && npm run typecheck && npm test

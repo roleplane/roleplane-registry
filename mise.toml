@@ -13,8 +13,8 @@ node = "22"
 # Install
 # ---------------------------------------------------------------------------
 [tasks.install]
-description = "Install dependencies from the npm lockfile"
-run = "npm ci"
+description = "Install dependencies from the npm lockfile and wire up git hooks"
+run = ["npm ci", "git config core.hooksPath .githooks"]
 
 # ---------------------------------------------------------------------------
 # Build
