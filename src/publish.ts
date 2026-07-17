@@ -438,7 +438,8 @@ async function openEntryPr(
     "reading the registry's main branch",
   )) as { object: { sha: string } };
   const branch = `publish-${name}-${version}`.replaceAll(".", "-");
-  // A fresh fork populates asynchronously — retry while it comes up.
+  // A fresh fork populates asynchronously — retry while it comes up. A branch
+  // left over from an earlier failed attempt is ours: reset it and carry on.
   for (let attempt = 1; ; attempt++) {
     try {
       await gh.request(
@@ -449,7 +450,17 @@ async function openEntryPr(
       );
       break;
     } catch (err) {
-      if (!(err instanceof GitHubError) || attempt >= 5) throw err;
+      if (!(err instanceof GitHubError)) throw err;
+      if (err.message.includes("Reference already exists")) {
+        await gh.request(
+          "PATCH",
+          `/repos/${fork.full_name}/git/refs/heads/${branch}`,
+          { sha: base.object.sha, force: true },
+          "resetting the publish branch",
+        );
+        break;
+      }
+      if (attempt >= 5) throw err;
       await sleep(1000 * attempt);
     }
   }
