@@ -55,6 +55,15 @@ describe("renderSite", () => {
     expect(publish).toContain('name="url"');
   });
 
+  it("publish page explains the team repo layout and offers the Scaffold button", () => {
+    const publish = pages["publish/index.html"];
+    expect(publish).toContain("config.yaml");
+    expect(publish).toContain("roleplane/team-template");
+    expect(publish).toMatch(
+      /<form[^>]*action="\/scaffold-team"[^>]*method="post"/i,
+    );
+  });
+
   it("every card shows the exact install command and version history", () => {
     expect(pages["index.html"]).toContain(
       "roleplane skill add octocat/agent-stuff/teams/growth",

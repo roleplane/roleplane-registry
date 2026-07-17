@@ -4,6 +4,7 @@ import {
   handleLogin,
   handlePublish,
   handlePublishTeam,
+  handleScaffoldTeam,
   type PublishEnv,
 } from "../src/publish.ts";
 
@@ -672,5 +673,59 @@ describe("handlePublishTeam", () => {
       { sha: "d".repeat(40), version: "1.0.0" },
       { sha: pinSha, version: "1.1.0" },
     ]);
+  });
+});
+
+describe("handleScaffoldTeam", () => {
+  const api = "https://api.github.com";
+  const request = () =>
+    new Request("https://registry.example/scaffold-team", {
+      method: "POST",
+      headers: { cookie: "gh_token=gho_token" },
+    });
+
+  it("generates <author>/roleplane-teams from the template and shows the paste URL", async () => {
+    const github = fakeGitHub({
+      [`GET ${api}/user`]: () => ({ json: { login: "octocat" } }),
+      [`GET ${api}/repos/octocat/roleplane-teams`]: () => ({
+        status: 404,
+        json: {},
+      }),
+      [`POST ${api}/repos/roleplane/team-template/generate`]: (body) => {
+        expect(body).toMatchObject({ owner: "octocat", name: "roleplane-teams" });
+        return { status: 201, json: { full_name: "octocat/roleplane-teams" } };
+      },
+    });
+    const res = await handleScaffoldTeam(request(), env(github.fetch));
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain("github.com/octocat/roleplane-teams/tree/main/teams/starter");
+    // Scaffolding keeps the session alive — the token cookie is not cleared.
+    expect(res.headers.getSetCookie()).toEqual([]);
+  });
+
+  it("is idempotent: an existing roleplane-teams repo is reused, not an error", async () => {
+    const github = fakeGitHub({
+      [`GET ${api}/user`]: () => ({ json: { login: "octocat" } }),
+      [`GET ${api}/repos/octocat/roleplane-teams`]: () => ({
+        json: { full_name: "octocat/roleplane-teams" },
+      }),
+    });
+    const res = await handleScaffoldTeam(request(), env(github.fetch));
+    expect(res.status).toBe(200);
+    expect(await res.text()).toContain("already exists");
+    expect(
+      github.calls.some((c) => c.url.includes("/generate")),
+    ).toBe(false);
+  });
+
+  it("rejects a request without a token cookie", async () => {
+    const github = fakeGitHub({});
+    const res = await handleScaffoldTeam(
+      new Request("https://registry.example/scaffold-team", { method: "POST" }),
+      env(github.fetch),
+    );
+    expect(res.status).toBe(401);
+    expect(github.calls).toEqual([]);
   });
 });

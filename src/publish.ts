@@ -20,6 +20,9 @@ export interface PublishEnv {
 const API = "https://api.github.com";
 /** Repo created under the author's account to hold form-published skills. */
 const SKILLS_REPO = "roleplane-skills";
+/** Template repo a Scaffold generates from, and the repo name it creates. */
+const TEAM_TEMPLATE_REPO = "roleplane/team-template";
+const TEAMS_REPO = "roleplane-teams";
 /** Token cookie lifetime — long enough to fill the form, nothing more. */
 const TOKEN_MAX_AGE = 1800;
 
@@ -176,6 +179,65 @@ export async function handlePublishTeam(
       tags,
     }),
   );
+}
+
+/**
+ * The Scaffold handler: generate a starter team repo under the author's
+ * account from the template. Not a Publish — no Index Entry is touched, and
+ * the token cookie stays so the author can publish after editing.
+ */
+export async function handleScaffoldTeam(
+  request: Request,
+  env: PublishEnv,
+): Promise<Response> {
+  const token = readCookie(request, "gh_token");
+  if (!token)
+    return htmlResponse(401, "Not logged in", "<p>Log in with GitHub first.</p>");
+
+  const gh = githubClient(env.fetch, token);
+  try {
+    const { login } = (await gh.request(
+      "GET",
+      "/user",
+      undefined,
+      "reading your GitHub user",
+    )) as { login: string };
+    const existing = await gh.maybe("GET", `/repos/${login}/${TEAMS_REPO}`);
+    if (existing === null)
+      await gh.request(
+        "POST",
+        `/repos/${TEAM_TEMPLATE_REPO}/generate`,
+        {
+          owner: login,
+          name: TEAMS_REPO,
+          description: "Roleplane teams",
+        },
+        "generating your team repo from the template",
+      );
+    const pasteUrl = `github.com/${login}/${TEAMS_REPO}/tree/main/teams/starter`;
+    return htmlResponse(
+      200,
+      existing ? "Team repo already exists" : "Team repo created",
+      `<p>${
+        existing
+          ? `<code>${esc(login)}/${TEAMS_REPO}</code> already exists — using it as is.`
+          : `Created <a href="https://github.com/${esc(login)}/${TEAMS_REPO}">${esc(login)}/${TEAMS_REPO}</a> from the template.`
+      }</p>
+<ol>
+  <li>Clone it and rename <code>teams/starter</code> to your team's name.</li>
+  <li>Edit the team in your own Workspace — <code>config.yaml</code>, Agents, Skills — and push.</li>
+  <li>Paste the directory URL into the publish form, e.g. <code>${esc(pasteUrl)}</code></li>
+</ol>`,
+    );
+  } catch (err) {
+    if (err instanceof GitHubError)
+      return htmlResponse(
+        502,
+        "Scaffold failed",
+        `<p>GitHub call failed while ${esc(err.step)}: ${esc(err.message)}</p>`,
+      );
+    throw err;
+  }
 }
 
 /**

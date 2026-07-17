@@ -24,6 +24,10 @@ _Avoid_: Upload (nothing is uploaded), submit, release
 Appending a new `{sha, version}` pin to an existing Index Entry's history — how an Author releases an update. History is append-only; the version label must change on every Re-pin.
 _Avoid_: Update (ambiguous), bump, overwrite
 
+**Scaffold**:
+Generating a starter team repo (`<author>/roleplane-teams`, from `roleplane/team-template`) under the Author's own account via the publish page. A convenience for authoring — not a Publish: it creates no Index Entry and counts nothing. Authoring stays in the Author's Workspace.
+_Avoid_: Bootstrap, template (as a verb), builder
+
 **Install**:
 Fetching a unit into a founder's Workspace at the entry's pinned SHA, done by the Roleplane product. Browsing or downloading from the site is not an Install and is never counted.
 _Avoid_: Download, clone

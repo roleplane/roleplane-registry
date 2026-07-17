@@ -32,7 +32,10 @@ The functions are stateless and public-source, with no data at rest:
 - `functions/` — thin Cloudflare Pages Functions wrappers:
   `/auth/login` (redirect to GitHub authorize, CSRF state cookie),
   `/auth/callback` (code→token exchange, sets the token cookie),
-  `/publish` (the Skill form handler), `/publish-team` (Team by pointer).
+  `/publish` (the Skill form handler), `/publish-team` (Team by pointer),
+  `/scaffold-team` (Scaffold: generate `<author>/roleplane-teams` from
+  `roleplane/team-template` — a convenience, not a Publish; idempotent, and
+  keeps the token cookie so the author can publish afterwards).
 - `publish/index.html` — the static form, rendered by `src/build-site.ts`
   with the rest of the site. Plain link to log in, plain form POST to
   publish; no client-side requests.

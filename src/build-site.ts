@@ -131,6 +131,21 @@ function publishPage(): string {
 </form>
 <h2>Publish a Team by pointer</h2>
 <p>Teams stay authored in your own Workspace. Point at an existing team directory in your repo and the app opens the index-entry PR as you, pinned to the repo's current SHA. Deep validation happens in CI.</p>
+<details class="team-help">
+  <summary>What does a team repo look like?</summary>
+  <pre>teams/&lt;your-team&gt;/
+├── config.yaml    # schema, name, description, jobs
+├── agents/        # one markdown file per Agent
+└── skills/        # the Skills those Agents use</pre>
+  <ol>
+    <li>No repo yet? Use the button below to Scaffold one from <a href="https://github.com/roleplane/team-template">roleplane/team-template</a>.</li>
+    <li>Clone it and edit the team in your own Workspace, then push.</li>
+    <li>Paste the directory URL here, e.g. <code>github.com/you/roleplane-teams/tree/main/teams/your-team</code></li>
+  </ol>
+</details>
+<form action="/scaffold-team" method="post" class="publish-form">
+  <button type="submit">Create a team repo for me</button>
+</form>
 <form action="/publish-team" method="post" class="publish-form">
   <label>Team directory URL<br><input name="url" required placeholder="https://github.com/you/agent-stuff/tree/main/teams/growth"></label>
   <label>Name (optional — derived from the directory name if left blank)<br><input name="name" pattern="[a-z0-9][a-z0-9-]*" placeholder="growth-team"></label>
