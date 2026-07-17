@@ -16,4 +16,8 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
+      # Publish PRs add an entry without rebuilding index.json; the
+      # rebuild-index workflow refreshes it on main after merge.
       - run: npm test
+        env:
+          SKIP_INDEX_DRIFT: ${{ github.event_name == 'pull_request' && '1' || '' }}

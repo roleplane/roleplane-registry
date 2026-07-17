@@ -26,11 +26,16 @@ describe("buildIndex", () => {
     );
   });
 
-  it("committed index.json matches a rebuild from entries/ (no drift)", () => {
-    const root = join(import.meta.dirname, "..");
-    const committed = JSON.parse(
-      readFileSync(join(root, "index.json"), "utf8"),
-    );
-    expect(buildIndex(join(root, "entries"))).toEqual(committed);
-  });
+  // Publish PRs add an entry without rebuilding index.json — the rebuild-index
+  // workflow refreshes it on main after merge, so PRs skip the drift check.
+  it.skipIf(process.env.SKIP_INDEX_DRIFT)(
+    "committed index.json matches a rebuild from entries/ (no drift)",
+    () => {
+      const root = join(import.meta.dirname, "..");
+      const committed = JSON.parse(
+        readFileSync(join(root, "index.json"), "utf8"),
+      );
+      expect(buildIndex(join(root, "entries"))).toEqual(committed);
+    },
+  );
 });

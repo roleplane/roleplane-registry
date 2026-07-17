@@ -1,0 +1,35 @@
+name: rebuild-index
+
+# After a publish PR merges, the committed index.json lags entries/. Rebuild
+# it on main and commit the refresh. (Pushes made with GITHUB_TOKEN don't
+# retrigger workflows; deploy-site rebuilds the index itself, so the site is
+# never stale.)
+on:
+  push:
+    branches: [main]
+    paths: [entries/**]
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Commit the refreshed index.json
+        run: |
+          if git diff --quiet index.json; then
+            echo "index.json already up to date"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.json
+          git commit -m "chore: rebuild index.json from entries/"
+          git push
