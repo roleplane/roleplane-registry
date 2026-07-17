@@ -113,16 +113,85 @@ export async function handlePublish(
     );
 
   const gh = githubClient(env.fetch, token);
-  const sleep =
-    env.sleep ?? ((ms: number) => new Promise((r) => setTimeout(r, ms)));
-  try {
-    const prUrl = await publishSkill(gh, env.registryRepo, sleep, {
+  return publishResponse(() =>
+    publishSkill(gh, env.registryRepo, envSleep(env), {
       name,
       description,
       version,
       body,
       tags,
-    });
+    }),
+  );
+}
+
+/**
+ * The Team-by-pointer handler: no content is written to the author's repo —
+ * the entry simply pins the referenced directory at the repo's current SHA,
+ * and the PR is opened as the author exactly like a Skill publish.
+ */
+export async function handlePublishTeam(
+  request: Request,
+  env: PublishEnv,
+): Promise<Response> {
+  const token = readCookie(request, "gh_token");
+  if (!token)
+    return htmlResponse(401, "Not logged in", "<p>Log in with GitHub first.</p>");
+
+  const fields = new URLSearchParams(await request.text());
+  const name = (fields.get("name") ?? "").trim();
+  const description = (fields.get("description") ?? "").trim();
+  const version = (fields.get("version") ?? "").trim();
+  const repo = parseRepo((fields.get("repo") ?? "").trim());
+  const path = (fields.get("path") ?? "").trim().replace(/^\/+|\/+$/g, "");
+  const tags = (fields.get("tags") ?? "")
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+
+  const invalid: string[] = [];
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(name))
+    invalid.push("name must be lowercase letters, digits, and hyphens");
+  if (!repo)
+    invalid.push('repo must be "owner/repo" or a github.com repo URL');
+  if (!path) invalid.push("path to the team directory is required");
+  if (!description) invalid.push("description is required");
+  if (!version) invalid.push("version is required");
+  if (invalid.length > 0)
+    return htmlResponse(
+      400,
+      "Invalid team",
+      `<ul>${invalid.map((m) => `<li>${esc(m)}</li>`).join("")}</ul>`,
+    );
+
+  const gh = githubClient(env.fetch, token);
+  return publishResponse(() =>
+    publishTeam(gh, env.registryRepo, envSleep(env), {
+      name,
+      repo: repo!,
+      path,
+      description,
+      version,
+      tags,
+    }),
+  );
+}
+
+/** "owner/repo", or any github.com URL to the repo — normalized to "owner/repo". */
+function parseRepo(input: string): string | null {
+  const match = /^(?:https?:\/\/github\.com\/)?([\w.-]+)\/([\w.-]+?)(?:\.git)?\/?$/.exec(
+    input,
+  );
+  return match ? `${match[1]}/${match[2]}` : null;
+}
+
+function envSleep(env: PublishEnv): (ms: number) => Promise<void> {
+  return env.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
+}
+
+/** Shared outcome shape: PR link on success, 400 on rejection, 502 on GitHub failure. The token cookie is cleared on every outcome that touched GitHub. */
+async function publishResponse(work: () => Promise<string>): Promise<Response> {
+  try {
+    const prUrl = await work();
     return htmlResponse(
       200,
       "Published",
@@ -165,23 +234,18 @@ async function publishSkill(
     "reading your GitHub user",
   )) as { login: string };
 
-  // A Re-pin appends to the existing entry's history — read it first so a
-  // reused version label is rejected before anything is written anywhere.
-  const entryPath = `entries/${login}/${skill.name}.json`;
-  const existingEntry = (await gh.maybe(
-    "GET",
-    `/repos/${registryRepo}/contents/${entryPath}`,
-  )) as { content: string; sha: string } | null;
-  const baseHistory = existingEntry
-    ? (JSON.parse(fromB64(existingEntry.content)) as IndexEntry).history
-    : [];
-  if (baseHistory.some((pin) => pin.version === skill.version))
-    throw new PublishRejected(
-      `version "${skill.version}" is already in ${login}/${skill.name}'s history — the version label must change on every re-pin`,
-    );
+  const skillsRepo = `${login}/${SKILLS_REPO}`;
+  const skillPath = `skills/${skill.name}.md`;
+  const { existingEntry, baseHistory } = await readEntryHistory(
+    gh,
+    registryRepo,
+    login,
+    skill.name,
+    skill.version,
+    { kind: "skill", repo: skillsRepo, path: skillPath },
+  );
 
   // Ensure the author's skills repo exists.
-  const skillsRepo = `${login}/${SKILLS_REPO}`;
   const existingRepo = await gh.maybe("GET", `/repos/${skillsRepo}`);
   if (existingRepo === null)
     await gh.request(
@@ -192,7 +256,6 @@ async function publishSkill(
     );
 
   // Commit the skill file (updating in place if it already exists).
-  const skillPath = `skills/${skill.name}.md`;
   const existingFile = (await gh.maybe(
     "GET",
     `/repos/${skillsRepo}/contents/${skillPath}`,
@@ -212,18 +275,156 @@ async function publishSkill(
   )) as { commit: { sha: string } };
 
   // Build the Index Entry: new, or a Re-pin appended to the existing history.
-  const pin = { sha: commit.commit.sha, version: skill.version };
-  const history = [...baseHistory, pin];
   const entry: IndexEntry = {
     kind: "skill",
     repo: skillsRepo,
     path: skillPath,
     description: skill.description,
     tags: skill.tags,
-    history,
+    history: [...baseHistory, { sha: commit.commit.sha, version: skill.version }],
   };
+  return openEntryPr(gh, registryRepo, sleep, {
+    login,
+    name: skill.name,
+    version: skill.version,
+    entry,
+    existingEntry,
+  });
+}
 
-  // Fork the registry, branch from its main, commit the entry, open the PR.
+interface TeamPayload {
+  name: string;
+  repo: string;
+  path: string;
+  description: string;
+  version: string;
+  tags: string[];
+}
+
+async function publishTeam(
+  gh: GitHub,
+  registryRepo: string,
+  sleep: (ms: number) => Promise<void>,
+  team: TeamPayload,
+): Promise<string> {
+  const { login } = (await gh.request(
+    "GET",
+    "/user",
+    undefined,
+    "reading your GitHub user",
+  )) as { login: string };
+
+  const { existingEntry, baseHistory } = await readEntryHistory(
+    gh,
+    registryRepo,
+    login,
+    team.name,
+    team.version,
+    { kind: "team", repo: team.repo, path: team.path },
+  );
+
+  // Pin the SHA current at publish time: tip of the repo's default branch.
+  const { default_branch } = (await gh.request(
+    "GET",
+    `/repos/${team.repo}`,
+    undefined,
+    "reading the referenced repo",
+  )) as { default_branch: string };
+  const tip = (await gh.request(
+    "GET",
+    `/repos/${team.repo}/git/ref/heads/${default_branch}`,
+    undefined,
+    "reading the referenced repo's default branch",
+  )) as { object: { sha: string } };
+  const sha = tip.object.sha;
+
+  // Fast feedback only — CI validates the team deeply at the pinned SHA.
+  const dir = await gh.maybe(
+    "GET",
+    `/repos/${team.repo}/contents/${team.path}?ref=${sha}`,
+  );
+  if (dir === null)
+    throw new PublishRejected(
+      `${team.path} does not exist in ${team.repo} at ${sha}`,
+    );
+
+  const entry: IndexEntry = {
+    kind: "team",
+    repo: team.repo,
+    path: team.path,
+    description: team.description,
+    tags: team.tags,
+    history: [...baseHistory, { sha, version: team.version }],
+  };
+  return openEntryPr(gh, registryRepo, sleep, {
+    login,
+    name: team.name,
+    version: team.version,
+    entry,
+    existingEntry,
+  });
+}
+
+/**
+ * Read the entry as it exists in the registry today. A Re-pin appends to that
+ * history, so it must keep pointing at the same unit: a reused version label,
+ * or a changed kind/repo/path, is rejected here — before anything is written
+ * anywhere. Retargeting an entry takes a hand-written PR.
+ */
+async function readEntryHistory(
+  gh: GitHub,
+  registryRepo: string,
+  login: string,
+  name: string,
+  version: string,
+  expected: { kind: IndexEntry["kind"]; repo: string; path: string },
+): Promise<{
+  existingEntry: { content: string; sha: string } | null;
+  baseHistory: IndexEntry["history"];
+}> {
+  const existingEntry = (await gh.maybe(
+    "GET",
+    `/repos/${registryRepo}/contents/entries/${login}/${name}.json`,
+  )) as { content: string; sha: string } | null;
+  if (!existingEntry) return { existingEntry, baseHistory: [] };
+
+  const current = JSON.parse(fromB64(existingEntry.content)) as IndexEntry;
+  if (
+    current.kind !== expected.kind ||
+    current.repo !== expected.repo ||
+    current.path !== expected.path
+  )
+    throw new PublishRejected(
+      `${login}/${name} already exists as a ${current.kind} pointing at ${current.repo}/${current.path} — a re-pin can't retarget an entry; open a hand-written PR to change what it points at`,
+    );
+  if (current.history.some((pin) => pin.version === version))
+    throw new PublishRejected(
+      `version "${version}" is already in ${login}/${name}'s history — the version label must change on every re-pin`,
+    );
+  return { existingEntry, baseHistory: current.history };
+}
+
+/** Fork the registry, branch from its main, commit the entry, open the PR as the author. */
+async function openEntryPr(
+  gh: GitHub,
+  registryRepo: string,
+  sleep: (ms: number) => Promise<void>,
+  {
+    login,
+    name,
+    version,
+    entry,
+    existingEntry,
+  }: {
+    login: string;
+    name: string;
+    version: string;
+    entry: IndexEntry;
+    existingEntry: { sha: string } | null;
+  },
+): Promise<string> {
+  const entryPath = `entries/${login}/${name}.json`;
+  const pin = entry.history[entry.history.length - 1];
   const fork = (await gh.request(
     "POST",
     `/repos/${registryRepo}/forks`,
@@ -236,7 +437,7 @@ async function publishSkill(
     undefined,
     "reading the registry's main branch",
   )) as { object: { sha: string } };
-  const branch = `publish-${skill.name}-${skill.version}`.replaceAll(".", "-");
+  const branch = `publish-${name}-${version}`.replaceAll(".", "-");
   // A fresh fork populates asynchronously — retry while it comes up.
   for (let attempt = 1; ; attempt++) {
     try {
@@ -256,7 +457,7 @@ async function publishSkill(
     "PUT",
     `/repos/${fork.full_name}/contents/${entryPath}`,
     {
-      message: `Publish ${login}/${skill.name} v${skill.version}`,
+      message: `Publish ${login}/${name} v${version}`,
       content: toB64(JSON.stringify(entry, null, 2) + "\n"),
       branch,
       ...(existingEntry ? { sha: existingEntry.sha } : {}),
@@ -267,10 +468,10 @@ async function publishSkill(
     "POST",
     `/repos/${registryRepo}/pulls`,
     {
-      title: `Publish ${login}/${skill.name} v${skill.version}`,
+      title: `Publish ${login}/${name} v${version}`,
       head: `${login}:${branch}`,
       base: "main",
-      body: `Publishes \`${login}/${skill.name}\` pointing at \`${skillsRepo}/${skillPath}\` @ \`${pin.sha}\`.`,
+      body: `Publishes \`${login}/${name}\` (${entry.kind}) pointing at \`${entry.repo}/${entry.path}\` @ \`${pin.sha}\`.`,
     },
     "opening the pull request",
   )) as { html_url: string };

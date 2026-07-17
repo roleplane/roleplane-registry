@@ -3,6 +3,7 @@ import {
   handleCallback,
   handleLogin,
   handlePublish,
+  handlePublishTeam,
   type PublishEnv,
 } from "../src/publish.ts";
 
@@ -406,5 +407,227 @@ describe("handlePublish", () => {
     const res = await handlePublish(form(payload), env(github.fetch));
     expect(res.status).toBe(502);
     expect(await res.text()).toContain("pull request");
+  });
+});
+
+describe("handlePublishTeam", () => {
+  const form = (fields: Record<string, string>) =>
+    new Request("https://registry.example/publish-team", {
+      method: "POST",
+      headers: {
+        "content-type": "application/x-www-form-urlencoded",
+        cookie: "gh_token=gho_token",
+      },
+      body: new URLSearchParams(fields).toString(),
+    });
+
+  const payload = {
+    name: "growth-team",
+    repo: "https://github.com/octocat/agent-stuff",
+    path: "teams/growth",
+    description: "A growth marketing team",
+    tags: "growth, marketing",
+    version: "1.0.0",
+  };
+
+  const api = "https://api.github.com";
+  const pinSha = "e".repeat(40);
+  const baseSha = "b".repeat(40);
+
+  function happyPathRoutes(): Record<
+    string,
+    (body: unknown) => { status?: number; json: unknown }
+  > {
+    return {
+      [`GET ${api}/user`]: () => ({ json: { login: "octocat" } }),
+      [`GET ${api}/repos/roleplane/roleplane-registry/contents/entries/octocat/growth-team.json`]:
+        () => ({ status: 404, json: {} }),
+      [`GET ${api}/repos/octocat/agent-stuff`]: () => ({
+        json: { default_branch: "main" },
+      }),
+      [`GET ${api}/repos/octocat/agent-stuff/git/ref/heads/main`]: () => ({
+        json: { object: { sha: pinSha } },
+      }),
+      [`GET ${api}/repos/octocat/agent-stuff/contents/teams/growth?ref=${pinSha}`]:
+        () => ({ json: [{ name: "config.yaml" }] }),
+      [`POST ${api}/repos/roleplane/roleplane-registry/forks`]: () => ({
+        status: 202,
+        json: { full_name: "octocat/roleplane-registry" },
+      }),
+      [`GET ${api}/repos/roleplane/roleplane-registry/git/ref/heads/main`]:
+        () => ({ json: { object: { sha: baseSha } } }),
+      [`POST ${api}/repos/octocat/roleplane-registry/git/refs`]: () => ({
+        status: 201,
+        json: {},
+      }),
+      [`PUT ${api}/repos/octocat/roleplane-registry/contents/entries/octocat/growth-team.json`]:
+        () => ({ status: 201, json: { commit: { sha: "c".repeat(40) } } }),
+      [`POST ${api}/repos/roleplane/roleplane-registry/pulls`]: () => ({
+        status: 201,
+        json: {
+          html_url: "https://github.com/roleplane/roleplane-registry/pull/11",
+        },
+      }),
+    };
+  }
+
+  it("pins the repo's current SHA and opens a kind=team entry PR as the author", async () => {
+    const github = fakeGitHub(happyPathRoutes());
+    const res = await handlePublishTeam(form(payload), env(github.fetch));
+    expect(res.status).toBe(200);
+    expect(await res.text()).toContain(
+      "https://github.com/roleplane/roleplane-registry/pull/11",
+    );
+
+    const entryPut = github.calls.find(
+      (c) =>
+        c.method === "PUT" &&
+        c.url.includes("contents/entries/octocat/growth-team.json"),
+    )!;
+    const entry = JSON.parse(
+      fromB64((entryPut.body as { content: string }).content),
+    );
+    expect(entry).toEqual({
+      kind: "team",
+      repo: "octocat/agent-stuff",
+      path: "teams/growth",
+      description: "A growth marketing team",
+      tags: ["growth", "marketing"],
+      history: [{ sha: pinSha, version: "1.0.0" }],
+    });
+
+    // No content is committed to the author's repo — publish is by pointer.
+    expect(
+      github.calls.some(
+        (c) => c.method !== "GET" && c.url.includes("/repos/octocat/agent-stuff"),
+      ),
+    ).toBe(false);
+
+    const pr = github.calls.find(
+      (c) =>
+        c.method === "POST" &&
+        c.url === `${api}/repos/roleplane/roleplane-registry/pulls`,
+    )!;
+    expect(pr.body).toMatchObject({
+      base: "main",
+      head: expect.stringMatching(/^octocat:/),
+    });
+
+    // Token cookie cleared after use.
+    const cookies = res.headers.getSetCookie();
+    expect(cookies.some((c) => c.startsWith("gh_token=;"))).toBe(true);
+  });
+
+  it("accepts a bare owner/repo and strips surrounding slashes from the path", async () => {
+    const github = fakeGitHub(happyPathRoutes());
+    const res = await handlePublishTeam(
+      form({ ...payload, repo: "octocat/agent-stuff", path: "/teams/growth/" }),
+      env(github.fetch),
+    );
+    expect(res.status).toBe(200);
+    const entryPut = github.calls.find(
+      (c) => c.method === "PUT" && c.url.includes("growth-team.json"),
+    )!;
+    const entry = JSON.parse(
+      fromB64((entryPut.body as { content: string }).content),
+    );
+    expect(entry.repo).toBe("octocat/agent-stuff");
+    expect(entry.path).toBe("teams/growth");
+  });
+
+  it("rejects when the team directory doesn't exist at the pinned SHA", async () => {
+    const routes = happyPathRoutes();
+    routes[`GET ${api}/repos/octocat/agent-stuff/contents/teams/growth?ref=${pinSha}`] =
+      () => ({ status: 404, json: {} });
+    const github = fakeGitHub(routes);
+    const res = await handlePublishTeam(form(payload), env(github.fetch));
+    expect(res.status).toBe(400);
+    expect(await res.text()).toContain("teams/growth");
+    // Nothing was written anywhere.
+    expect(github.calls.every((c) => c.method === "GET")).toBe(true);
+  });
+
+  it("rejects a re-pin that would retarget an existing entry", async () => {
+    const routes = happyPathRoutes();
+    const existing = {
+      kind: "team",
+      repo: "octocat/other-repo",
+      path: "teams/growth",
+      description: "A growth marketing team",
+      tags: ["growth"],
+      history: [{ sha: "d".repeat(40), version: "1.0.0" }],
+    };
+    routes[
+      `GET ${api}/repos/roleplane/roleplane-registry/contents/entries/octocat/growth-team.json`
+    ] = () => ({
+      json: { content: b64(JSON.stringify(existing)), sha: "blobsha" },
+    });
+    const github = fakeGitHub(routes);
+    const res = await handlePublishTeam(
+      form({ ...payload, version: "1.1.0" }),
+      env(github.fetch),
+    );
+    expect(res.status).toBe(400);
+    expect(await res.text()).toContain("octocat/other-repo");
+    expect(github.calls.every((c) => c.method === "GET")).toBe(true);
+  });
+
+  it("rejects an unparseable repo before calling GitHub", async () => {
+    const github = fakeGitHub({});
+    const res = await handlePublishTeam(
+      form({ ...payload, repo: "not a repo" }),
+      env(github.fetch),
+    );
+    expect(res.status).toBe(400);
+    expect(github.calls).toEqual([]);
+  });
+
+  it("rejects a request without a token cookie", async () => {
+    const github = fakeGitHub({});
+    const req = new Request("https://registry.example/publish-team", {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams(payload).toString(),
+    });
+    const res = await handlePublishTeam(req, env(github.fetch));
+    expect(res.status).toBe(401);
+    expect(github.calls).toEqual([]);
+  });
+
+  it("re-pins an existing team entry, rejecting a reused version", async () => {
+    const routes = happyPathRoutes();
+    const existing = {
+      kind: "team",
+      repo: "octocat/agent-stuff",
+      path: "teams/growth",
+      description: "A growth marketing team",
+      tags: ["growth"],
+      history: [{ sha: "d".repeat(40), version: "1.0.0" }],
+    };
+    routes[
+      `GET ${api}/repos/roleplane/roleplane-registry/contents/entries/octocat/growth-team.json`
+    ] = () => ({
+      json: { content: b64(JSON.stringify(existing)), sha: "blobsha" },
+    });
+    const github = fakeGitHub(routes);
+
+    const rejected = await handlePublishTeam(form(payload), env(github.fetch));
+    expect(rejected.status).toBe(400);
+
+    const res = await handlePublishTeam(
+      form({ ...payload, version: "1.1.0" }),
+      env(github.fetch),
+    );
+    expect(res.status).toBe(200);
+    const entryPut = github.calls.find(
+      (c) => c.method === "PUT" && c.url.includes("growth-team.json"),
+    )!;
+    const entry = JSON.parse(
+      fromB64((entryPut.body as { content: string }).content),
+    );
+    expect(entry.history).toEqual([
+      { sha: "d".repeat(40), version: "1.0.0" },
+      { sha: pinSha, version: "1.1.0" },
+    ]);
   });
 });

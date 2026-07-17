@@ -47,6 +47,15 @@ describe("renderSite", () => {
     }
   });
 
+  it("publish page offers a Team-by-pointer form posting to /publish-team", () => {
+    const publish = pages["publish/index.html"];
+    expect(publish).toMatch(
+      /<form[^>]*action="\/publish-team"[^>]*method="post"/i,
+    );
+    expect(publish).toContain('name="repo"');
+    expect(publish).toContain('name="path"');
+  });
+
   it("every card shows the exact install command and version history", () => {
     expect(pages["index.html"]).toContain(
       "roleplane skill add octocat/agent-stuff/teams/growth",

@@ -4,8 +4,12 @@ The publish flow lets an Author publish a Skill without touching git: log in
 with GitHub, fill the form on `/publish/`, and the app — using **the author's
 own token** — commits the skill file to a `roleplane-skills` repo under their
 account and opens the index-entry PR against this registry **as the author**.
-Attribution is the PR authorship, unforgeable. Teams publish by pointer via a
-hand-written PR (no web builder).
+Attribution is the PR authorship, unforgeable.
+
+Teams publish **by pointer** (no web builder): the same page takes a repo +
+path to an existing team directory, and `/publish-team` opens the index-entry
+PR (kind=team) pinned to the repo's current default-branch SHA. Nothing is
+written to the author's repo; deep validation stays in CI at the pinned SHA.
 
 ## Statelessness
 
@@ -26,7 +30,7 @@ The functions are stateless and public-source, with no data at rest:
 - `functions/` — thin Cloudflare Pages Functions wrappers:
   `/auth/login` (redirect to GitHub authorize, CSRF state cookie),
   `/auth/callback` (code→token exchange, sets the token cookie),
-  `/publish` (the form handler).
+  `/publish` (the Skill form handler), `/publish-team` (Team by pointer).
 - `publish/index.html` — the static form, rendered by `src/build-site.ts`
   with the rest of the site. Plain link to log in, plain form POST to
   publish; no client-side requests.
