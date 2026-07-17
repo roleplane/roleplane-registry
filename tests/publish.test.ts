@@ -362,6 +362,22 @@ describe("handlePublish", () => {
     expect(attempts).toBe(3);
   });
 
+  it("resets a leftover publish branch from a failed attempt and continues", async () => {
+    const routes = happyPathRoutes();
+    routes[`POST ${api}/repos/octocat/roleplane-registry/git/refs`] = () => ({
+      status: 422,
+      json: { message: "Reference already exists" },
+    });
+    routes[
+      `PATCH ${api}/repos/octocat/roleplane-registry/git/refs/heads/publish-uk-english-tone-0-1-0`
+    ] = () => ({ json: {} });
+    const github = fakeGitHub(routes);
+    const res = await handlePublish(form(payload), env(github.fetch));
+    expect(res.status).toBe(200);
+    const reset = github.calls.find((c) => c.method === "PATCH")!;
+    expect(reset.body).toEqual({ sha: baseSha, force: true });
+  });
+
   it("rejects a request without a token cookie", async () => {
     const github = fakeGitHub({});
     const req = new Request("https://registry.example/publish", {
