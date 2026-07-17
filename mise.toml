@@ -62,6 +62,17 @@ description = "Tail Docker Compose logs"
 run = "docker compose logs -f"
 
 # ---------------------------------------------------------------------------
+# Cloudflare Pages
+# ---------------------------------------------------------------------------
+[tasks.pages-secrets]
+description = "Push the GitHub OAuth secrets from 1Password to the Pages project (takes effect on the next deploy)"
+run = """
+export CLOUDFLARE_API_TOKEN=$(op read "op://Dev/cloudflare-roleplane-pages-edit/CLOUDFLARE_API_TOKEN")
+op read "op://Dev/github-roleplane-registry-OAuth/GITHUB_CLIENT_ID" | npx wrangler pages secret put GITHUB_CLIENT_ID --project-name roleplane-registry
+op read "op://Dev/github-roleplane-registry-OAuth/GITHUB_CLIENT_SECRET" | npx wrangler pages secret put GITHUB_CLIENT_SECRET --project-name roleplane-registry
+"""
+
+# ---------------------------------------------------------------------------
 # Housekeeping
 # ---------------------------------------------------------------------------
 [tasks.clean]

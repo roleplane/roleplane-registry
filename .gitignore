@@ -75,3 +75,4 @@ CLAUDE.md
 
 # ---- Run output (Deliverables — gitignored by default, version them by choice) ----
 outputs/
+.wrangler/
