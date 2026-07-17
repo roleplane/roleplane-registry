@@ -29,12 +29,22 @@ describe("buildSiteData", () => {
 describe("renderSite", () => {
   const pages = renderSite(buildSiteData(index));
 
-  it("renders the catalog page and one page per author", () => {
+  it("renders the catalog page, one page per author, and the publish page", () => {
     expect(Object.keys(pages).sort()).toEqual([
       "authors/octocat/index.html",
       "authors/roleplane/index.html",
       "index.html",
+      "publish/index.html",
     ]);
+  });
+
+  it("publish page logs in via /auth/login and posts the form to /publish", () => {
+    const publish = pages["publish/index.html"];
+    expect(publish).toContain('href="/auth/login"');
+    expect(publish).toMatch(/<form[^>]*action="\/publish"[^>]*method="post"/i);
+    for (const field of ["name", "description", "tags", "version", "body"]) {
+      expect(publish).toContain(`name="${field}"`);
+    }
   });
 
   it("every card shows the exact install command and version history", () => {
