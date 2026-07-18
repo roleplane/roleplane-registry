@@ -212,6 +212,19 @@ describe("validateEntry", () => {
       ]);
     });
 
+    it("fails a skill input whose optional fields are mistyped", async () => {
+      const result = await validateEntry(
+        input(),
+        fakeHost({
+          fetchFile: async () =>
+            "---\nname: x\ndescription: y\ninputs:\n  - name: product\n    required: definitely\n---\n\nBody.\n",
+        }),
+      );
+      expect(result.errors).toEqual([
+        'octocat/blog-craft: skill input "required" must be a boolean when present',
+      ]);
+    });
+
     it("fails a skill deliverable without a file", async () => {
       const result = await validateEntry(
         input(),

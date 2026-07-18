@@ -48,7 +48,7 @@ function siteEntry(key: string, entry: IndexEntry): SiteEntry {
         path: entry.path,
         description: entry.description,
         tags: entry.tags,
-        installCommand: `roleplane skill add ${entry.repo}/${entry.path}`,
+        installCommand: `roleplane ${entry.kind} add ${entry.repo}/${entry.path}`,
         latestVersion: entry.history[entry.history.length - 1].version,
         history: entry.history,
         ...(entry.installs !== undefined ? { installs: entry.installs } : {}),

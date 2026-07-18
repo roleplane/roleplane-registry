@@ -29,7 +29,7 @@ The entry key is `author/name`, derived from the file path — it is never decla
 
 | Field | Meaning |
 | --- | --- |
-| `kind` | `"skill"` (single markdown file at `path`) or `"team"` (team directory at `path`). |
+| `kind` | `"skill"` or `"agent"` (single markdown file at `path`) or `"team"` (team directory at `path`). |
 | `repo` | The Author's GitHub repo (`owner/repo`) holding the content. |
 | `path` | Path within `repo` to the skill file or team directory. |
 | `description` | One-line description shown on catalog cards. |

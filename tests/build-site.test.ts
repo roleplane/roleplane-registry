@@ -66,7 +66,7 @@ describe("renderSite", () => {
 
   it("every card shows the exact install command and version history", () => {
     expect(pages["index.html"]).toContain(
-      "roleplane skill add octocat/agent-stuff/teams/growth",
+      "roleplane team add octocat/agent-stuff/teams/growth",
     );
     expect(pages["index.html"]).toContain(
       "roleplane skill add roleplane/roleplane/templates/teams/content/skills/blog-craft.md",

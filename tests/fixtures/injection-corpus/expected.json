@@ -1,6 +1,9 @@
 {
+  "credential-harvest.md": ["credential-harvest"],
   "embedded-url.md": ["embedded-url"],
   "instruction-override.md": ["instruction-override"],
+  "remote-instructions.md": ["remote-instructions"],
   "tool-invocation.md": ["tool-invocation"],
-  "webhook-exfiltration.md": ["embedded-url", "exfiltration", "webhook"]
+  "webhook-exfiltration.md": ["embedded-url", "exfiltration", "webhook"],
+  "workspace-escape.md": ["workspace-escape"]
 }

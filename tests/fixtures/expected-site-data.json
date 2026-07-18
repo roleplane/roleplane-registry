@@ -9,7 +9,7 @@
       "path": "teams/growth",
       "description": "A growth experiments team.",
       "tags": ["growth"],
-      "installCommand": "roleplane skill add octocat/agent-stuff/teams/growth",
+      "installCommand": "roleplane team add octocat/agent-stuff/teams/growth",
       "latestVersion": "0.2.0",
       "history": [
         { "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "version": "0.1.0" },
@@ -26,7 +26,7 @@
       "path": "agents/market-analyst.md",
       "description": "A market analyst agent.",
       "tags": ["research"],
-      "installCommand": "roleplane skill add octocat/agent-stuff/agents/market-analyst.md",
+      "installCommand": "roleplane agent add octocat/agent-stuff/agents/market-analyst.md",
       "latestVersion": "1.0.0",
       "history": [
         { "sha": "cccccccccccccccccccccccccccccccccccccccc", "version": "1.0.0" }

@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { lintText, rulesVersion } from "../src/injection-lint.ts";
+import { declaresTools, lintText, rulesVersion } from "../src/injection-lint.ts";
 
 const corpus = join(import.meta.dirname, "fixtures", "injection-corpus");
 
@@ -20,7 +20,8 @@ describe("injection lint", () => {
 
     const actual: Record<string, string[]> = {};
     for (const file of files) {
-      const findings = lintText(readFileSync(join(badDir, file), "utf8"));
+      const content = readFileSync(join(badDir, file), "utf8");
+      const findings = lintText(content, { declaresTools: declaresTools(content) });
       actual[file] = [...new Set(findings.map((f) => f.rule))].sort();
     }
     expect(actual).toEqual(expected);
@@ -29,7 +30,8 @@ describe("injection lint", () => {
   it("passes every known-good corpus file clean", () => {
     const goodDir = join(corpus, "good");
     for (const file of readdirSync(goodDir).sort()) {
-      const findings = lintText(readFileSync(join(goodDir, file), "utf8"));
+      const content = readFileSync(join(goodDir, file), "utf8");
+      const findings = lintText(content, { declaresTools: declaresTools(content) });
       expect(findings, `${file} should lint clean`).toEqual([]);
     }
   });

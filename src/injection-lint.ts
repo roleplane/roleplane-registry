@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { parse as parseYaml } from "yaml";
 
 interface Rule {
   id: string;
@@ -32,6 +33,19 @@ export interface LintContext {
   /** Whether the content's frontmatter declares tools — the standalone-run
    * surface gets its own rule set, and pure-knowledge rules stand down. */
   declaresTools?: boolean;
+}
+
+/** Whether a markdown unit's frontmatter declares any tools — decides which
+ * injection-lint rule set screens it. Non-frontmatter content declares none. */
+export function declaresTools(content: string): boolean {
+  const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(content);
+  if (!match) return false;
+  try {
+    const fm = parseYaml(match[1]) as Record<string, unknown> | null;
+    return Array.isArray(fm?.tools) && fm.tools.length > 0;
+  } catch {
+    return false;
+  }
 }
 
 /**

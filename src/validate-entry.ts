@@ -1,6 +1,6 @@
 import { parse as parseYaml } from "yaml";
 import { entryShapeErrors, type IndexEntry } from "./build-index.ts";
-import { lintText } from "./injection-lint.ts";
+import { declaresTools, lintText } from "./injection-lint.ts";
 
 /**
  * The complete Roleplane tool surface. A skill's or agent's `tools:` is a
@@ -286,42 +286,70 @@ function skillSchemaErrors(key: string, content: string): string[] {
     );
 
   // Skill v2 fields — all optional, but if present must be shaped right.
-  if (fm.inputs !== undefined) {
-    if (!Array.isArray(fm.inputs)) {
-      errors.push(`${key}: skill "inputs" must be a list`);
-    } else {
-      for (const input of fm.inputs) {
-        if (
-          typeof input !== "object" ||
-          input === null ||
-          typeof (input as Record<string, unknown>).name !== "string" ||
-          (input as Record<string, unknown>).name === ""
-        )
-          errors.push(
-            `${key}: every skill input needs a non-empty "name" string`,
-          );
-      }
-    }
-  }
-  if (fm.deliverables !== undefined) {
-    if (!Array.isArray(fm.deliverables)) {
-      errors.push(`${key}: skill "deliverables" must be a list`);
-    } else {
-      for (const deliverable of fm.deliverables) {
-        if (
-          typeof deliverable !== "object" ||
-          deliverable === null ||
-          typeof (deliverable as Record<string, unknown>).file !== "string" ||
-          (deliverable as Record<string, unknown>).file === ""
-        )
-          errors.push(
-            `${key}: every skill deliverable needs a non-empty "file" string`,
-          );
-      }
-    }
-  }
+  unitListErrors(key, "input", fm.inputs, "name", INPUT_FIELDS, errors);
+  unitListErrors(
+    key,
+    "deliverable",
+    fm.deliverables,
+    "file",
+    DELIVERABLE_FIELDS,
+    errors,
+  );
   toolsErrors(key, "skill", fm.tools, errors);
   return errors;
+}
+
+// Optional field types, mirroring JobInput and Deliverable in the product repo.
+const INPUT_FIELDS = {
+  description: "string",
+  required: "boolean",
+  primary: "boolean",
+  default: "string",
+} as const;
+const DELIVERABLE_FIELDS = {
+  description: "string",
+  root: "boolean",
+  type: "string",
+} as const;
+
+/**
+ * Validate one Skill v2 list field (`inputs` or `deliverables`): a list of
+ * mappings, each with a non-empty identifying string plus typed optional
+ * fields. Absent means "not declared" and is always fine.
+ */
+function unitListErrors(
+  key: string,
+  label: "input" | "deliverable",
+  items: unknown,
+  requiredField: string,
+  optionalFields: Record<string, "string" | "boolean">,
+  errors: string[],
+): void {
+  if (items === undefined) return;
+  if (!Array.isArray(items)) {
+    errors.push(`${key}: skill "${label}s" must be a list`);
+    return;
+  }
+  for (const item of items) {
+    if (
+      typeof item !== "object" ||
+      item === null ||
+      typeof (item as Record<string, unknown>)[requiredField] !== "string" ||
+      (item as Record<string, unknown>)[requiredField] === ""
+    ) {
+      errors.push(
+        `${key}: every skill ${label} needs a non-empty "${requiredField}" string`,
+      );
+      continue;
+    }
+    for (const [field, type] of Object.entries(optionalFields)) {
+      const value = (item as Record<string, unknown>)[field];
+      if (value !== undefined && value !== null && typeof value !== type)
+        errors.push(
+          `${key}: skill ${label} "${field}" must be a ${type} when present`,
+        );
+    }
+  }
 }
 
 function agentSchemaErrors(key: string, content: string): string[] {
@@ -348,19 +376,6 @@ function agentSchemaErrors(key: string, content: string): string[] {
       `${key}: agent body is empty — an agent must contain a system prompt below the frontmatter`,
     );
   return errors;
-}
-
-/** Whether a markdown unit's frontmatter declares any tools — decides which
- * injection-lint rule set screens it. Non-frontmatter content declares none. */
-function declaresTools(content: string): boolean {
-  const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(content);
-  if (!match) return false;
-  try {
-    const fm = parseYaml(match[1]) as Record<string, unknown> | null;
-    return Array.isArray(fm?.tools) && fm.tools.length > 0;
-  } catch {
-    return false;
-  }
 }
 
 function teamConfigErrors(key: string, config: string): string[] {
