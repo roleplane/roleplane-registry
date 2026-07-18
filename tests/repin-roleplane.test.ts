@@ -1,10 +1,13 @@
 /**
- * Guards the #70 re-pin: the 15 shipped skill entries now resolve out of
- * `skills/roleplane/` in the roleplane repo, their history stayed append-only,
- * and each pinned target still validates against its real content.
+ * Guards the #70 re-pin: the 15 shipped skill entries resolve out of
+ * `skills/roleplane/`, every pin they had before the re-pin survives intact,
+ * and both old and new pins still resolve to real content.
  *
- * Content comes from the sibling roleplane checkout via `git show <sha>:<path>`,
- * which is what an installer would fetch from raw.githubusercontent at that SHA.
+ * The pre-re-pin state is a committed fixture, not a `git show` against the
+ * base branch. Comparing the tree to its own base only works on an unmerged
+ * PR — once merged, base *is* the tree and the check compares against itself.
+ * The base-branch comparison is a publish-time gate, and validate-entry.ts
+ * already owns it (see its Re-pin gate); this file guards the durable shape.
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
@@ -17,86 +20,55 @@ const ENTRY_DIR = new URL("../entries/roleplane/", import.meta.url).pathname;
 /**
  * The sibling roleplane checkout the entries point at. Only present in a local
  * side-by-side workspace, so the content-resolution cases skip without it —
- * CI proves the same thing against live GitHub in validate-entry.
+ * CI covers the same ground against live GitHub in validate-entry.
  */
 const SOURCE_REPO = new URL("../../roleplane/", import.meta.url).pathname;
-const hasSource = existsSync(`${SOURCE_REPO}.git`);
-const itWithSource = hasSource ? it : it.skip;
+const itIfSiblingCheckout = existsSync(`${SOURCE_REPO}.git`) ? it : it.skip;
 
-const names = readdirSync(ENTRY_DIR)
-  .filter((f) => f.endsWith(".json"))
-  .map((f) => f.replace(/\.json$/, ""));
+/** Each skill entry's path and history as of a15e857, immediately before #70. */
+const preRepin = JSON.parse(
+  readFileSync(
+    new URL("./fixtures/pre-repin-skills.json", import.meta.url).pathname,
+    "utf8",
+  ),
+) as Record<string, { path: string; history: IndexEntry["history"] }>;
 
 const entries = new Map<string, IndexEntry>(
-  names.map((n) => [
-    `roleplane/${n}`,
-    JSON.parse(readFileSync(`${ENTRY_DIR}${n}.json`, "utf8")) as IndexEntry,
-  ]),
+  readdirSync(ENTRY_DIR)
+    .filter((f) => f.endsWith(".json"))
+    .map((f) => [
+      `roleplane/${f.replace(/\.json$/, "")}`,
+      JSON.parse(readFileSync(`${ENTRY_DIR}${f}`, "utf8")) as IndexEntry,
+    ]),
 );
 
 /**
- * #70 covers the shipped *skill* entries only. The author also publishes agents
- * (pinned under `agents/roleplane/`), which this re-pin leaves alone — so every
- * assertion below scopes to kind: skill rather than to the whole author
+ * #70 covers the shipped *skill* entries only. The author also publishes
+ * agents (pinned under `agents/roleplane/`), which this re-pin leaves alone —
+ * so the assertions scope to kind: skill rather than to the whole author
  * namespace, which would otherwise break each time an agent is published.
  */
 const skillKeys = [...entries]
   .filter(([, e]) => e.kind === "skill")
   .map(([key]) => key);
 
-/**
- * The base branch this re-pin is measured against. A shallow CI checkout has
- * no remote-tracking ref, so fall back through the local branch — and fail
- * loudly rather than silently treating "ref missing" as "entry is new",
- * which would let the append-only check pass by doing nothing.
- */
-const baseRefCandidate = ["origin/main", "main"].find((ref) => {
+/** Reads a file from the sibling checkout at a pinned sha, as an installer would. */
+function fileAt(sha: string, path: string): string | null {
   try {
-    execFileSync("git", ["rev-parse", "--verify", `${ref}^{commit}`], {
-      stdio: "ignore",
-    });
-    return true;
-  } catch {
-    return false;
-  }
-});
-
-if (!baseRefCandidate)
-  throw new Error(
-    "no base ref: checkout main or fetch it (actions/checkout needs fetch-depth: 0)",
-  );
-const BASE_REF: string = baseRefCandidate;
-
-/** The entry as committed on the base branch, i.e. before this re-pin. */
-function baseEntry(name: string): IndexEntry | undefined {
-  const path = `entries/roleplane/${name}.json`;
-  // Distinguish "entry didn't exist on base" (fine — a brand-new entry) from
-  // "git couldn't answer" (not fine — that must not read as an empty history).
-  const existed = execFileSync(
-    "git",
-    ["ls-tree", "--name-only", BASE_REF, path],
-    { encoding: "utf8" },
-  ).trim();
-  if (!existed) return undefined;
-
-  return JSON.parse(
-    execFileSync("git", ["show", `${BASE_REF}:${path}`], {
+    return execFileSync("git", ["show", `${sha}:${path}`], {
       encoding: "utf8",
-    }),
-  ) as IndexEntry;
+      cwd: SOURCE_REPO,
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+  } catch {
+    return null;
+  }
 }
 
+/** Serves the publish gates from the sibling checkout instead of live GitHub. */
 const host: ContentHost = {
   async fetchFile(_repo, sha, path) {
-    try {
-      return execFileSync("git", ["show", `${sha}:${path}`], {
-        encoding: "utf8",
-        cwd: SOURCE_REPO,
-        stdio: ["ignore", "pipe", "ignore"],
-      });
-    } catch {
-      return null;
-    }
+    return fileAt(sha, path);
   },
   async listDir(_repo, sha, path) {
     try {
@@ -109,8 +81,7 @@ const host: ContentHost = {
           stdio: ["ignore", "pipe", "ignore"],
         },
       ).trim();
-      if (!out) return null;
-      return out.split("\n").map((p) => p.split("/").pop()!);
+      return out ? out.split("\n").map((p) => p.split("/").pop()!) : null;
     } catch {
       return null;
     }
@@ -120,62 +91,58 @@ const host: ContentHost = {
   },
 };
 
-const latest = (e: IndexEntry) => e.history[e.history.length - 1];
-
 describe("roleplane re-pin to skills/roleplane/", () => {
   it("ships exactly the 15 known skill entries", () => {
     expect(skillKeys).toHaveLength(15);
+    expect(skillKeys.sort()).toEqual(Object.keys(preRepin).sort());
   });
 
   it("has no kind: team entries left in the index", () => {
-    const teams = [...entries].filter(([, e]) => e.kind === "team");
-    expect(teams).toEqual([]);
+    // Deliberately spans every entry, not just skills: the criterion is about
+    // the whole index, since a stranded team would strand its members too.
+    expect([...entries].filter(([, e]) => e.kind === "team")).toEqual([]);
   });
 
   it.each(skillKeys)("%s pins to skills/roleplane/", (key) => {
-    const entry = entries.get(key)!;
-    expect(entry.path).toMatch(/^skills\/roleplane\/[a-z0-9-]+\.md$/);
+    expect(entries.get(key)!.path).toMatch(
+      /^skills\/roleplane\/[a-z0-9-]+\.md$/,
+    );
   });
 
-  it.each(skillKeys)("%s keeps history append-only", (key) => {
-    const entry = entries.get(key)!;
-    const base = baseEntry(key.split("/")[1]);
-    expect(base, "entry must already exist on main").toBeDefined();
+  it.each(skillKeys)("%s kept every pin it had before the re-pin", (key) => {
+    const { history } = entries.get(key)!;
+    const before = preRepin[key].history;
 
-    // Every prior pin survives untouched, in order, at the front.
-    expect(entry.history.slice(0, base!.history.length)).toEqual(base!.history);
-    // The re-pin appended something new.
-    expect(entry.history.length).toBe(base!.history.length + 1);
-    // Version labels are distinct, so old pins stay addressable.
-    const versions = entry.history.map((p) => p.version);
+    // Prior pins survive untouched, in order, at the front — nothing rewritten.
+    expect(history.slice(0, before.length)).toEqual(before);
+    // ...and the re-pin appended rather than replaced.
+    expect(history.length).toBeGreaterThan(before.length);
+    // Distinct version labels, so every past pin stays addressable.
+    const versions = history.map((p) => p.version);
     expect(new Set(versions).size).toBe(versions.length);
   });
 
-  itWithSource.each(skillKeys)(
-    "%s resolves real content at its pinned sha",
-    async (key) => {
+  itIfSiblingCheckout.each(skillKeys)(
+    "%s resolves real content at its current pin",
+    (key) => {
       const entry = entries.get(key)!;
-      const { sha } = latest(entry);
+      const { sha } = entry.history[entry.history.length - 1];
       expect(sha).toMatch(/^[0-9a-f]{40}$/);
 
-      const content = await host.fetchFile(entry.repo, sha, entry.path);
+      const content = fileAt(sha, entry.path);
       expect(content, `${entry.path} missing at ${sha}`).not.toBeNull();
-      expect(content).toMatch(/^---\n/);
-      expect(content).toContain(
-        `name: ${entry.path.split("/").pop()!.replace(/\.md$/, "")}`,
-      );
+      expect(content).toMatch(/^---\ntype: skill\n/);
     },
   );
 
-  itWithSource.each(skillKeys)(
-    "%s validates green at its new pin",
+  itIfSiblingCheckout.each(skillKeys)(
+    "%s passes the publish gates at its new pin",
     async (key) => {
-      const entry = entries.get(key)!;
       const result = await validateEntry(
         {
           key,
-          entry,
-          baseEntry: baseEntry(key.split("/")[1]),
+          entry: entries.get(key)!,
+          baseEntry: { ...entries.get(key)!, ...preRepin[key] },
           prAuthor: "roleplane",
           existingKeys: [...entries.keys()],
         },
@@ -185,16 +152,14 @@ describe("roleplane re-pin to skills/roleplane/", () => {
     },
   );
 
-  itWithSource.each(skillKeys)(
-    "%s keeps its old pin resolvable",
-    async (key) => {
-      const entry = entries.get(key)!;
-      const base = baseEntry(key.split("/")[1])!;
-      for (const pin of base.history) {
-        const content = await host.fetchFile(entry.repo, pin.sha, base.path);
+  itIfSiblingCheckout.each(skillKeys)(
+    "%s still resolves every pin it shipped before the re-pin",
+    (key) => {
+      const { path } = preRepin[key];
+      for (const pin of preRepin[key].history) {
         expect(
-          content,
-          `${base.path} unresolvable at ${pin.sha}`,
+          fileAt(pin.sha, path),
+          `${path} gone at ${pin.sha}`,
         ).not.toBeNull();
       }
     },

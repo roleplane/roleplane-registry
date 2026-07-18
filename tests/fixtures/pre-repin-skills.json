@@ -1,0 +1,137 @@
+{
+  "roleplane/blog-craft": {
+    "path": "templates/teams/content/skills/blog-craft.md",
+    "history": [
+      {
+        "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "roleplane/business-critique": {
+    "path": "templates/teams/business-planning/skills/business-critique.md",
+    "history": [
+      {
+        "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "roleplane/canvas-method": {
+    "path": "templates/teams/business-planning/skills/canvas-method.md",
+    "history": [
+      {
+        "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "roleplane/competitor-analysis": {
+    "path": "templates/teams/market-research/skills/competitor-analysis.md",
+    "history": [
+      {
+        "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "roleplane/content-editing": {
+    "path": "templates/teams/content/skills/content-editing.md",
+    "history": [
+      {
+        "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "roleplane/conversion-copy": {
+    "path": "templates/teams/marketing-launch/skills/conversion-copy.md",
+    "history": [
+      {
+        "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "roleplane/copy-editing": {
+    "path": "templates/teams/marketing-launch/skills/copy-editing.md",
+    "history": [
+      {
+        "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "roleplane/how-to-writing": {
+    "path": "templates/teams/content/skills/how-to-writing.md",
+    "history": [
+      {
+        "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "roleplane/interview-method": {
+    "path": "templates/teams/onboarding/skills/interview-method.md",
+    "history": [
+      {
+        "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "roleplane/launch-writing": {
+    "path": "templates/teams/marketing-launch/skills/launch-writing.md",
+    "history": [
+      {
+        "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "roleplane/newsletter-writing": {
+    "path": "templates/teams/content/skills/newsletter-writing.md",
+    "history": [
+      {
+        "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "roleplane/positioning-method": {
+    "path": "templates/teams/marketing-launch/skills/positioning-method.md",
+    "history": [
+      {
+        "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "roleplane/pricing-strategy": {
+    "path": "templates/teams/business-planning/skills/pricing-strategy.md",
+    "history": [
+      {
+        "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "roleplane/research-writing": {
+    "path": "templates/teams/market-research/skills/research-writing.md",
+    "history": [
+      {
+        "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "roleplane/source-vetting": {
+    "path": "templates/teams/content/skills/source-vetting.md",
+    "history": [
+      {
+        "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
+        "version": "1.0.0"
+      }
+    ]
+  }
+}
