@@ -1,19 +1,19 @@
 # Roleplane Registry
 
-The pointer-index registry for Roleplane Skills and Teams. Content lives in authors' own GitHub repos; this repo holds only the index that points at it. Vocabulary here extends the Roleplane product glossary (`roleplane/roleplane` → `CONTEXT.md`) — Skill, Team, Workspace, etc. keep their meanings from there.
+The pointer-index registry for Roleplane Skills, Agents, and Teams. Content lives in authors' own GitHub repos; this repo holds only the index that points at it. Vocabulary here extends the Roleplane product glossary (`roleplane/roleplane` → `CONTEXT.md`) — Skill, Agent, Team, Workspace, etc. keep their meanings from there: the Skill is the atomic invocable unit, an Agent is a persona + skill bundle, a Team is pure composition over agents (ADR-0004 in the product repo).
 
 ## Language
 
 **Registry**:
-This repo plus the site built from it: the public catalog of Skills and Teams. It hosts no content — only Index Entries pointing at authors' repos.
+This repo plus the site built from it: the public catalog of Skills, Agents, and Teams. It hosts no content — only Index Entries pointing at authors' repos.
 _Avoid_: Marketplace (implies hosting and payments), store, hub
 
 **Index Entry**:
-One record in the index, keyed `author/name`, stored as `entries/<author>/<name>.json`. Carries kind (skill|team), the author's `repo` and `path`, description, tags, an append-only history of `{sha, version}` pins, and an optional `installs` count. The built `index.json` is the compiled set of all Index Entries.
+One record in the index, keyed `author/name`, stored as `entries/<author>/<name>.json`. Carries kind (skill|agent|team), the author's `repo` and `path`, description, tags, an append-only history of `{sha, version}` pins, and an optional `installs` count. The built `index.json` is the compiled set of all Index Entries.
 _Avoid_: Listing, package (nothing is packaged), record
 
 **Author**:
-The GitHub user (or org) whose username is the first segment of an Index Entry's key and who owns the referenced repo. Attribution is the PR authorship on the entry — unforgeable, never self-declared. First-party entries are authored by the Roleplane org.
+The GitHub user (or org) whose username is the first segment of an Index Entry's key and who owns the referenced repo. Attribution is the PR authorship on the entry — unforgeable, never self-declared. First-party entries are authored by the Roleplane org; `roleplane` is the reserved author — the registry rejects third-party entries claiming it, and installed `*/roleplane/` paths are app-managed (customize by forking into your own author namespace, per ADR-0004).
 _Avoid_: Vendor, publisher (as a noun), maintainer (reserved for the registry maintainer)
 
 **Publish**:
