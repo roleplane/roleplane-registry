@@ -1,7 +1,7 @@
 {
   "kind": "skill",
   "repo": "roleplane/roleplane",
-  "path": "templates/teams/market-research/skills/research-writing.md",
+  "path": "skills/roleplane/research-writing.md",
   "description": "How to write research a busy founder can act on.",
   "tags": [
     "research",
@@ -11,6 +11,10 @@
     {
       "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
       "version": "1.0.0"
+    },
+    {
+      "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
+      "version": "2.0.0"
     }
   ]
 }

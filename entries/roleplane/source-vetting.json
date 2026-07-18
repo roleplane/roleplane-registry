@@ -1,7 +1,7 @@
 {
   "kind": "skill",
   "repo": "roleplane/roleplane",
-  "path": "templates/teams/content/skills/source-vetting.md",
+  "path": "skills/roleplane/source-vetting.md",
   "description": "How to judge whether a source is trustworthy enough to cite.",
   "tags": [
     "research",
@@ -11,6 +11,10 @@
     {
       "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
       "version": "1.0.0"
+    },
+    {
+      "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
+      "version": "2.0.0"
     }
   ]
 }

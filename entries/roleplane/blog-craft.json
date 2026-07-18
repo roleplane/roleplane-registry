@@ -1,7 +1,7 @@
 {
   "kind": "skill",
   "repo": "roleplane/roleplane",
-  "path": "templates/teams/content/skills/blog-craft.md",
+  "path": "skills/roleplane/blog-craft.md",
   "description": "How to write a blog post people finish reading.",
   "tags": [
     "writing",
@@ -11,6 +11,10 @@
     {
       "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
       "version": "1.0.0"
+    },
+    {
+      "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
+      "version": "2.0.0"
     }
   ]
 }
