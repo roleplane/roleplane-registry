@@ -420,6 +420,27 @@ describe("validateEntry", () => {
       );
     });
 
+    it("lets a trusted maintainer publish under the reserved author", async () => {
+      const result = await validateEntry(
+        input({
+          key: "roleplane/market-analyst",
+          prAuthor: "Piwero",
+          entry: skillEntry({
+            kind: "agent",
+            repo: "roleplane/roleplane",
+            path: "agents/roleplane/market-analyst.md",
+          }),
+        }),
+        // authorControlsRepo returns false: the maintainer must pass on the
+        // first-party org exemption alone, not a collaborator lookup.
+        fakeHost({
+          fetchFile: async () => AGENT_FILE,
+          authorControlsRepo: async () => false,
+        }),
+      );
+      expect(result.errors).toEqual([]);
+    });
+
     it("rejects the reserved author case-insensitively", async () => {
       const result = await validateEntry(
         input({ key: "RolePlane/blog-craft", prAuthor: "mallory" }),

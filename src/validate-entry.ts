@@ -13,6 +13,14 @@ export const KNOWN_TOOLS = new Set(["web_search", "file_write", "ask_founder"]);
 const RESERVED_AUTHOR = "roleplane";
 
 /**
+ * GitHub logins trusted to publish first-party entries under the reserved
+ * author. A maintainer here acts as Roleplane itself: they may namespace an
+ * entry under "roleplane" and point it at any repo in the roleplane org
+ * without a per-repo collaborator check. Logins are compared lower-cased.
+ */
+const RESERVED_AUTHOR_MAINTAINERS = new Set(["piwero"]);
+
+/**
  * Everything validate-entry needs from the outside world, injected so tests
  * never touch live GitHub. CI wires this to the real API.
  */
@@ -60,14 +68,19 @@ export async function validateEntry(
   // Namespace gate — the reserved author is checked first so a squatting
   // attempt gets the specific error, not the generic namespace one.
   const [keyAuthor, name] = key.split("/");
-  if (
-    keyAuthor.toLowerCase() === RESERVED_AUTHOR &&
-    prAuthor.toLowerCase() !== RESERVED_AUTHOR
-  )
-    fail(
-      `author "${RESERVED_AUTHOR}" is reserved for first-party entries — publish under your own GitHub username ("${prAuthor}/${name}")`,
-    );
-  else if (keyAuthor.toLowerCase() !== prAuthor.toLowerCase())
+  const isReservedKey = keyAuthor.toLowerCase() === RESERVED_AUTHOR;
+  // A first-party actor is either the reserved author itself or a trusted
+  // maintainer standing in for it — both may publish under "roleplane".
+  const firstParty =
+    isReservedKey &&
+    (prAuthor.toLowerCase() === RESERVED_AUTHOR ||
+      RESERVED_AUTHOR_MAINTAINERS.has(prAuthor.toLowerCase()));
+  if (isReservedKey) {
+    if (!firstParty)
+      fail(
+        `author "${RESERVED_AUTHOR}" is reserved for first-party entries — publish under your own GitHub username ("${prAuthor}/${name}")`,
+      );
+  } else if (keyAuthor.toLowerCase() !== prAuthor.toLowerCase())
     fail(
       `entry key must be namespaced under the PR author — expected "${prAuthor}/${name}"`,
     );
@@ -125,6 +138,8 @@ export async function validateEntry(
   const repoOwner = entry.repo.split("/")[0];
   const owns =
     repoOwner.toLowerCase() === prAuthor.toLowerCase() ||
+    // A first-party maintainer inherently controls repos in the roleplane org.
+    (firstParty && repoOwner.toLowerCase() === RESERVED_AUTHOR) ||
     (await host.authorControlsRepo(prAuthor, entry.repo));
   if (!owns)
     fail(
