@@ -7,7 +7,7 @@ export interface Pin {
 }
 
 export interface IndexEntry {
-  kind: "skill" | "team";
+  kind: "skill" | "agent" | "team";
   repo: string;
   path: string;
   description: string;
@@ -52,8 +52,8 @@ export function entryShapeErrors(key: string, entry: IndexEntry): string[] {
   const fail = (msg: string): void => {
     errors.push(`${key}: ${msg}`);
   };
-  if (entry.kind !== "skill" && entry.kind !== "team")
-    fail(`kind must be "skill" or "team"`);
+  if (entry.kind !== "skill" && entry.kind !== "agent" && entry.kind !== "team")
+    fail(`kind must be "skill", "agent", or "team"`);
   if (!/^[\w.-]+\/[\w.-]+$/.test(entry.repo))
     fail(`repo must look like "owner/repo"`);
   if (!entry.path) fail("path is required");

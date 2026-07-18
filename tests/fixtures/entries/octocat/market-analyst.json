@@ -1,0 +1,10 @@
+{
+  "kind": "agent",
+  "repo": "octocat/agent-stuff",
+  "path": "agents/market-analyst.md",
+  "description": "A market analyst agent.",
+  "tags": ["research"],
+  "history": [
+    { "sha": "cccccccccccccccccccccccccccccccccccccccc", "version": "1.0.0" }
+  ]
+}

@@ -21,4 +21,7 @@ jobs:
         env:
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           BASE_REF: origin/${{ github.base_ref }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # FIRST_PARTY_READ_TOKEN is a PAT / GitHub App token with read access
+          # to private first-party repos (e.g. roleplane/roleplane); falls back
+          # to the repo-scoped token for public entries when it isn't set.
+          GITHUB_TOKEN: ${{ secrets.FIRST_PARTY_READ_TOKEN || secrets.GITHUB_TOKEN }}

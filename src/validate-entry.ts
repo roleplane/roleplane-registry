@@ -1,6 +1,24 @@
 import { parse as parseYaml } from "yaml";
 import { entryShapeErrors, type IndexEntry } from "./build-index.ts";
-import { lintText } from "./injection-lint.ts";
+import { declaresTools, lintText } from "./injection-lint.ts";
+
+/**
+ * The complete Roleplane tool surface. A skill's or agent's `tools:` is a
+ * requirement declaration validated against this list — never a grant.
+ * Mirrors KNOWN_TOOLS in the product repo (roleplane/roleplane).
+ */
+export const KNOWN_TOOLS = new Set(["web_search", "file_write", "ask_founder"]);
+
+/** The reserved first-party author; third parties may never publish under it. */
+const RESERVED_AUTHOR = "roleplane";
+
+/**
+ * GitHub logins trusted to publish first-party entries under the reserved
+ * author. A maintainer here acts as Roleplane itself: they may namespace an
+ * entry under "roleplane" and point it at any repo in the roleplane org
+ * without a per-repo collaborator check. Logins are compared lower-cased.
+ */
+const RESERVED_AUTHOR_MAINTAINERS = new Set(["piwero"]);
 
 /**
  * Everything validate-entry needs from the outside world, injected so tests
@@ -47,9 +65,22 @@ export async function validateEntry(
     errors.push(`${key}: ${msg}`);
   };
 
-  // Namespace gate
+  // Namespace gate — the reserved author is checked first so a squatting
+  // attempt gets the specific error, not the generic namespace one.
   const [keyAuthor, name] = key.split("/");
-  if (keyAuthor.toLowerCase() !== prAuthor.toLowerCase())
+  const isReservedKey = keyAuthor.toLowerCase() === RESERVED_AUTHOR;
+  // A first-party actor is either the reserved author itself or a trusted
+  // maintainer standing in for it — both may publish under "roleplane".
+  const firstParty =
+    isReservedKey &&
+    (prAuthor.toLowerCase() === RESERVED_AUTHOR ||
+      RESERVED_AUTHOR_MAINTAINERS.has(prAuthor.toLowerCase()));
+  if (isReservedKey) {
+    if (!firstParty)
+      fail(
+        `author "${RESERVED_AUTHOR}" is reserved for first-party entries — publish under your own GitHub username ("${prAuthor}/${name}")`,
+      );
+  } else if (keyAuthor.toLowerCase() !== prAuthor.toLowerCase())
     fail(
       `entry key must be namespaced under the PR author — expected "${prAuthor}/${name}"`,
     );
@@ -107,6 +138,8 @@ export async function validateEntry(
   const repoOwner = entry.repo.split("/")[0];
   const owns =
     repoOwner.toLowerCase() === prAuthor.toLowerCase() ||
+    // A first-party maintainer inherently controls repos in the roleplane org.
+    (firstParty && repoOwner.toLowerCase() === RESERVED_AUTHOR) ||
     (await host.authorControlsRepo(prAuthor, entry.repo));
   if (!owns)
     fail(
@@ -116,14 +149,18 @@ export async function validateEntry(
   // Schema gate: validate the referenced content at the last (installed) pin
   const pin = entry.history[entry.history.length - 1];
   const fetched: string[] = [];
-  if (entry.kind === "skill") {
+  if (entry.kind === "skill" || entry.kind === "agent") {
     const content = await host.fetchFile(entry.repo, pin.sha, entry.path);
     if (content === null) {
       fail(
         `${entry.path} not found in ${entry.repo} at pinned SHA ${pin.sha}`,
       );
     } else {
-      errors.push(...skillSchemaErrors(key, content));
+      errors.push(
+        ...(entry.kind === "skill"
+          ? skillSchemaErrors(key, content)
+          : agentSchemaErrors(key, content)),
+      );
       fetched.push(content);
     }
   } else {
@@ -178,9 +215,12 @@ export async function validateEntry(
     }
   }
 
-  // Injection lint (warn-only) over whatever content the schema gate fetched
+  // Injection lint (warn-only) over whatever content the schema gate fetched.
+  // Tool-declaring content is the standalone-run surface and gets its own rules.
   for (const content of fetched) {
-    for (const finding of lintText(content)) {
+    for (const finding of lintText(content, {
+      declaresTools: declaresTools(content),
+    })) {
       warnings.push(
         `${key}: [${finding.rule}] ${finding.message} — matched ${JSON.stringify(finding.match)}`,
       );
@@ -190,28 +230,63 @@ export async function validateEntry(
   return { errors, warnings };
 }
 
-function skillSchemaErrors(key: string, content: string): string[] {
-  const errors: string[] = [];
+/**
+ * Split a markdown unit file into parsed frontmatter and body, or record why
+ * it can't be. Shared by the skill and agent schema gates.
+ */
+function parseUnitFile(
+  key: string,
+  unit: "skill" | "agent",
+  content: string,
+  errors: string[],
+): { fm: Record<string, unknown>; body: string } | null {
   const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(content);
   if (!match) {
     errors.push(
-      `${key}: skill file must start with a YAML frontmatter block (---)`,
+      `${key}: ${unit} file must start with a YAML frontmatter block (---)`,
     );
-    return errors;
+    return null;
   }
   const [, rawFrontmatter, body] = match;
   let frontmatter: unknown;
   try {
     frontmatter = parseYaml(rawFrontmatter);
   } catch {
-    errors.push(`${key}: skill frontmatter is not valid YAML`);
-    return errors;
+    errors.push(`${key}: ${unit} frontmatter is not valid YAML`);
+    return null;
   }
   if (typeof frontmatter !== "object" || frontmatter === null) {
-    errors.push(`${key}: skill frontmatter must be a YAML mapping`);
-    return errors;
+    errors.push(`${key}: ${unit} frontmatter must be a YAML mapping`);
+    return null;
   }
-  const fm = frontmatter as Record<string, unknown>;
+  return { fm: frontmatter as Record<string, unknown>, body };
+}
+
+/** Validate a `tools:` declaration against the known tool surface. */
+function toolsErrors(
+  key: string,
+  unit: "skill" | "agent",
+  tools: unknown,
+  errors: string[],
+): void {
+  if (tools === undefined) return;
+  if (!Array.isArray(tools) || tools.some((t) => typeof t !== "string")) {
+    errors.push(`${key}: ${unit} "tools" must be a list of tool names`);
+    return;
+  }
+  for (const tool of tools as string[]) {
+    if (!KNOWN_TOOLS.has(tool))
+      errors.push(
+        `${key}: ${unit} declares unknown tool '${tool}' — Roleplane tools are ${[...KNOWN_TOOLS].sort().join(", ")}`,
+      );
+  }
+}
+
+function skillSchemaErrors(key: string, content: string): string[] {
+  const errors: string[] = [];
+  const parsed = parseUnitFile(key, "skill", content, errors);
+  if (!parsed) return errors;
+  const { fm, body } = parsed;
   for (const field of ["name", "description"]) {
     if (typeof fm[field] !== "string" || fm[field] === "")
       errors.push(
@@ -223,6 +298,97 @@ function skillSchemaErrors(key: string, content: string): string[] {
   if (body.trim() === "")
     errors.push(
       `${key}: skill body is empty — a skill must contain instructions below the frontmatter`,
+    );
+
+  // Skill v2 fields — all optional, but if present must be shaped right.
+  unitListErrors(key, "input", fm.inputs, "name", INPUT_FIELDS, errors);
+  unitListErrors(
+    key,
+    "deliverable",
+    fm.deliverables,
+    "file",
+    DELIVERABLE_FIELDS,
+    errors,
+  );
+  toolsErrors(key, "skill", fm.tools, errors);
+  return errors;
+}
+
+// Optional field types, mirroring JobInput and Deliverable in the product repo.
+const INPUT_FIELDS = {
+  description: "string",
+  required: "boolean",
+  primary: "boolean",
+  default: "string",
+} as const;
+const DELIVERABLE_FIELDS = {
+  description: "string",
+  root: "boolean",
+  type: "string",
+} as const;
+
+/**
+ * Validate one Skill v2 list field (`inputs` or `deliverables`): a list of
+ * mappings, each with a non-empty identifying string plus typed optional
+ * fields. Absent means "not declared" and is always fine.
+ */
+function unitListErrors(
+  key: string,
+  label: "input" | "deliverable",
+  items: unknown,
+  requiredField: string,
+  optionalFields: Record<string, "string" | "boolean">,
+  errors: string[],
+): void {
+  if (items === undefined) return;
+  if (!Array.isArray(items)) {
+    errors.push(`${key}: skill "${label}s" must be a list`);
+    return;
+  }
+  for (const item of items) {
+    if (
+      typeof item !== "object" ||
+      item === null ||
+      typeof (item as Record<string, unknown>)[requiredField] !== "string" ||
+      (item as Record<string, unknown>)[requiredField] === ""
+    ) {
+      errors.push(
+        `${key}: every skill ${label} needs a non-empty "${requiredField}" string`,
+      );
+      continue;
+    }
+    for (const [field, type] of Object.entries(optionalFields)) {
+      const value = (item as Record<string, unknown>)[field];
+      if (value !== undefined && value !== null && typeof value !== type)
+        errors.push(
+          `${key}: skill ${label} "${field}" must be a ${type} when present`,
+        );
+    }
+  }
+}
+
+function agentSchemaErrors(key: string, content: string): string[] {
+  const errors: string[] = [];
+  const parsed = parseUnitFile(key, "agent", content, errors);
+  if (!parsed) return errors;
+  const { fm, body } = parsed;
+  for (const field of ["name", "role"]) {
+    if (typeof fm[field] !== "string" || fm[field] === "")
+      errors.push(
+        `${key}: agent frontmatter is missing required field "${field}"`,
+      );
+  }
+  if (fm.type !== undefined && fm.type !== "agent")
+    errors.push(`${key}: agent frontmatter "type" must be "agent"`);
+  if (
+    fm.skills !== undefined &&
+    (!Array.isArray(fm.skills) || fm.skills.some((s) => typeof s !== "string"))
+  )
+    errors.push(`${key}: agent "skills" must be a list of skill references`);
+  toolsErrors(key, "agent", fm.tools, errors);
+  if (body.trim() === "")
+    errors.push(
+      `${key}: agent body is empty — an agent must contain a system prompt below the frontmatter`,
     );
   return errors;
 }

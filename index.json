@@ -162,6 +162,22 @@
         }
       ]
     },
+    "roleplane/market-analyst": {
+      "kind": "agent",
+      "repo": "roleplane/roleplane",
+      "path": "agents/roleplane/market-analyst.md",
+      "description": "A market analyst who turns vague product questions into grounded, decision-ready answers.",
+      "tags": [
+        "research",
+        "strategy"
+      ],
+      "history": [
+        {
+          "sha": "917a72b03a6e2f87fe7b7f1224d64fb91d2acdce",
+          "version": "1.0.0"
+        }
+      ]
+    },
     "roleplane/newsletter-writing": {
       "kind": "skill",
       "repo": "roleplane/roleplane",

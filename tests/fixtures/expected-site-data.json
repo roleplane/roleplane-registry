@@ -9,13 +9,28 @@
       "path": "teams/growth",
       "description": "A growth experiments team.",
       "tags": ["growth"],
-      "installCommand": "roleplane skill add octocat/agent-stuff/teams/growth",
+      "installCommand": "roleplane team add octocat/agent-stuff/teams/growth",
       "latestVersion": "0.2.0",
       "history": [
         { "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "version": "0.1.0" },
         { "sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "version": "0.2.0" }
       ],
       "installs": 42
+    },
+    {
+      "key": "octocat/market-analyst",
+      "author": "octocat",
+      "name": "market-analyst",
+      "kind": "agent",
+      "repo": "octocat/agent-stuff",
+      "path": "agents/market-analyst.md",
+      "description": "A market analyst agent.",
+      "tags": ["research"],
+      "installCommand": "roleplane agent add octocat/agent-stuff/agents/market-analyst.md",
+      "latestVersion": "1.0.0",
+      "history": [
+        { "sha": "cccccccccccccccccccccccccccccccccccccccc", "version": "1.0.0" }
+      ]
     },
     {
       "key": "roleplane/blog-craft",
@@ -34,5 +49,5 @@
     }
   ],
   "authors": ["octocat", "roleplane"],
-  "tags": ["content", "growth", "writing"]
+  "tags": ["content", "growth", "research", "writing"]
 }

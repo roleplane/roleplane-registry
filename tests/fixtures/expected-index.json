@@ -13,6 +13,16 @@
       ],
       "installs": 42
     },
+    "octocat/market-analyst": {
+      "kind": "agent",
+      "repo": "octocat/agent-stuff",
+      "path": "agents/market-analyst.md",
+      "description": "A market analyst agent.",
+      "tags": ["research"],
+      "history": [
+        { "sha": "cccccccccccccccccccccccccccccccccccccccc", "version": "1.0.0" }
+      ]
+    },
     "roleplane/blog-craft": {
       "kind": "skill",
       "repo": "roleplane/roleplane",

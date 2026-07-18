@@ -33,8 +33,11 @@ function git(...args: string[]): string {
 
 const host: ContentHost = {
   async fetchFile(repo, sha, path) {
+    // Contents API (not raw.githubusercontent) so private first-party repos
+    // resolve with the token; the raw media type returns the file verbatim.
     const res = await fetch(
-      `https://raw.githubusercontent.com/${repo}/${sha}/${path}`,
+      `https://api.github.com/repos/${repo}/contents/${path}?ref=${sha}`,
+      { headers: { ...apiHeaders(), accept: "application/vnd.github.raw" } },
     );
     if (res.status === 404) return null;
     if (!res.ok) throw new Error(`fetch ${repo}@${sha}:${path} → ${res.status}`);
