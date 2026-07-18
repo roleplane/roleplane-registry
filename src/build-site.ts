@@ -5,7 +5,7 @@ export interface SiteEntry {
     key: string;
     author: string;
     name: string;
-    kind: "skill" | "team";
+    kind: "skill" | "agent" | "team";
     repo: string;
     path: string;
     description: string;

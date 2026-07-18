@@ -1,11 +1,12 @@
 {
-  "version": 1,
+  "version": 2,
   "rules": [
     {
       "id": "tool-invocation",
       "pattern": "\\b(?:run|execute|invoke|call|use)\\s+(?:the\\s+)?[\\w-]+\\s+tool\\b",
       "flags": "gi",
-      "message": "tool-invocation phrasing — skills are pure knowledge and must not direct tool use"
+      "appliesTo": "toolless",
+      "message": "tool-invocation phrasing — this content declares no tools and must not direct tool use"
     },
     {
       "id": "embedded-url",
@@ -30,6 +31,27 @@
       "pattern": "\\b(?:ignore|disregard|forget|override)\\s+(?:all\\s+|any\\s+|your\\s+|the\\s+)*(?:previous|prior|above|earlier|system)\\s+(?:instructions?|prompts?|rules?)\\b|\\bdisregard\\s+the\\s+system\\s+prompt\\b|\\byou\\s+are\\s+(?:now\\s+)?the\\s+orchestrator\\b",
       "flags": "gi",
       "message": "orchestrator-directed instruction — tries to override the agent's standing instructions"
+    },
+    {
+      "id": "remote-instructions",
+      "pattern": "\\b(?:fetch|browse|open|visit|load|retrieve)\\b[^\\n]{0,80}?\\b(?:and|then)\\s+(?:follow|execute|run|obey|apply)\\b[^\\n]{0,40}?\\b(?:instructions?|commands?|steps|directives?)\\b",
+      "flags": "gi",
+      "appliesTo": "tool-declaring",
+      "message": "remote-instruction pattern — directs the runner to fetch external content and follow instructions found in it"
+    },
+    {
+      "id": "credential-harvest",
+      "pattern": "\\b(?:ask|prompt|request|get|collect)\\b[^.\\n]{0,60}?\\b(?:founder|user)\\b[^.\\n]{0,60}?\\b(?:passwords?|api[ -]?keys?|tokens?|secrets?|credentials?)\\b",
+      "flags": "gi",
+      "appliesTo": "tool-declaring",
+      "message": "credential-harvest pattern — instructs asking the founder for secrets through ask_founder"
+    },
+    {
+      "id": "workspace-escape",
+      "pattern": "\\b(?:write|save|create|append(?:\\s+to)?|overwrite)\\b[^.\\n]{0,60}?(?:\\.\\./|~/|/(?:etc|usr|var|home|tmp)/|\\.ssh|\\.env\\b|\\.aws)",
+      "flags": "gi",
+      "appliesTo": "tool-declaring",
+      "message": "workspace-escape pattern — directs file writes outside the run's output directory"
     }
   ]
 }
