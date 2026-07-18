@@ -34,22 +34,46 @@ const entries = new Map<string, IndexEntry>(
   ]),
 );
 
-/** The entry as committed on main, i.e. before this re-pin. */
-function baseEntry(name: string): IndexEntry | undefined {
+/**
+ * The base branch this re-pin is measured against. A shallow CI checkout has
+ * no remote-tracking ref, so fall back through the local branch — and fail
+ * loudly rather than silently treating "ref missing" as "entry is new",
+ * which would let the append-only check pass by doing nothing.
+ */
+const baseRefCandidate = ["origin/main", "main"].find((ref) => {
   try {
-    return JSON.parse(
-      execFileSync(
-        "git",
-        ["show", `origin/main:entries/roleplane/${name}.json`],
-        {
-          encoding: "utf8",
-          stdio: ["ignore", "pipe", "ignore"],
-        },
-      ),
-    ) as IndexEntry;
+    execFileSync("git", ["rev-parse", "--verify", `${ref}^{commit}`], {
+      stdio: "ignore",
+    });
+    return true;
   } catch {
-    return undefined;
+    return false;
   }
+});
+
+if (!baseRefCandidate)
+  throw new Error(
+    "no base ref: checkout main or fetch it (actions/checkout needs fetch-depth: 0)",
+  );
+const BASE_REF: string = baseRefCandidate;
+
+/** The entry as committed on the base branch, i.e. before this re-pin. */
+function baseEntry(name: string): IndexEntry | undefined {
+  const path = `entries/roleplane/${name}.json`;
+  // Distinguish "entry didn't exist on base" (fine — a brand-new entry) from
+  // "git couldn't answer" (not fine — that must not read as an empty history).
+  const existed = execFileSync(
+    "git",
+    ["ls-tree", "--name-only", BASE_REF, path],
+    { encoding: "utf8" },
+  ).trim();
+  if (!existed) return undefined;
+
+  return JSON.parse(
+    execFileSync("git", ["show", `${BASE_REF}:${path}`], {
+      encoding: "utf8",
+    }),
+  ) as IndexEntry;
 }
 
 const host: ContentHost = {
