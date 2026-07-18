@@ -52,6 +52,20 @@ const skillKeys = [...entries]
   .filter(([, e]) => e.kind === "skill")
   .map(([key]) => key);
 
+/**
+ * Retired: the migration renamed *and* rewrote this skill (new description,
+ * plus inputs/tools/deliverables), so re-pinning the old key would have shipped
+ * different behaviour under a name that no longer matched its content. The key
+ * keeps its original pin — still installable, never repointed — and the rewrite
+ * ships as roleplane/competitor-scan instead.
+ */
+const RETIRED = new Set(["roleplane/competitor-analysis"]);
+
+/** Skill entries this re-pin actually moved to skills/roleplane/. */
+const repinnedKeys = skillKeys.filter(
+  (key) => key in preRepin && !RETIRED.has(key),
+);
+
 /** Reads a file from the sibling checkout at a pinned sha, as an installer would. */
 function fileAt(sha: string, path: string): string | null {
   try {
@@ -92,9 +106,19 @@ const host: ContentHost = {
 };
 
 describe("roleplane re-pin to skills/roleplane/", () => {
-  it("ships exactly the 15 known skill entries", () => {
-    expect(skillKeys).toHaveLength(15);
-    expect(skillKeys.sort()).toEqual(Object.keys(preRepin).sort());
+  it("re-pins the 14 skills that moved, leaving the retired key alone", () => {
+    expect(Object.keys(preRepin)).toHaveLength(15);
+    expect(repinnedKeys).toHaveLength(14);
+    // Every pre-existing skill is either re-pinned or deliberately retired.
+    expect([...repinnedKeys, ...RETIRED].sort()).toEqual(
+      Object.keys(preRepin).sort(),
+    );
+  });
+
+  it.each([...RETIRED])("%s keeps its original pin, unrepointed", (key) => {
+    const entry = entries.get(key)!;
+    expect(entry.path).toBe(preRepin[key].path);
+    expect(entry.history).toEqual(preRepin[key].history);
   });
 
   it("has no kind: team entries left in the index", () => {
@@ -103,13 +127,13 @@ describe("roleplane re-pin to skills/roleplane/", () => {
     expect([...entries].filter(([, e]) => e.kind === "team")).toEqual([]);
   });
 
-  it.each(skillKeys)("%s pins to skills/roleplane/", (key) => {
+  it.each(repinnedKeys)("%s pins to skills/roleplane/", (key) => {
     expect(entries.get(key)!.path).toMatch(
       /^skills\/roleplane\/[a-z0-9-]+\.md$/,
     );
   });
 
-  it.each(skillKeys)("%s kept every pin it had before the re-pin", (key) => {
+  it.each(repinnedKeys)("%s kept every pin it had before the re-pin", (key) => {
     const { history } = entries.get(key)!;
     const before = preRepin[key].history;
 
@@ -132,17 +156,28 @@ describe("roleplane re-pin to skills/roleplane/", () => {
       const content = fileAt(sha, entry.path);
       expect(content, `${entry.path} missing at ${sha}`).not.toBeNull();
       expect(content).toMatch(/^---\ntype: skill\n/);
+      // The installed skill must announce the name it was installed under.
+      // Compared against the entry *key*, not the path — deriving both sides
+      // from the path is what let the competitor-scan divergence slip through.
+      expect(content).toContain(`name: ${key.split("/")[1]}\n`);
     },
   );
 
-  itIfSiblingCheckout.each(skillKeys)(
+  // The retired key is excluded: it is unchanged by this work, so it would
+  // never appear in a Publish PR's changed set for the gates to run against.
+  itIfSiblingCheckout.each(skillKeys.filter((k) => !RETIRED.has(k)))(
     "%s passes the publish gates at its new pin",
     async (key) => {
       const result = await validateEntry(
         {
           key,
           entry: entries.get(key)!,
-          baseEntry: { ...entries.get(key)!, ...preRepin[key] },
+          // Undefined for a first publish (competitor-scan); the pre-#70 state
+          // otherwise, so the gate sees a genuine re-pin rather than a no-op.
+          baseEntry:
+            key in preRepin
+              ? { ...entries.get(key)!, ...preRepin[key] }
+              : undefined,
           prAuthor: "roleplane",
           existingKeys: [...entries.keys()],
         },
@@ -152,7 +187,7 @@ describe("roleplane re-pin to skills/roleplane/", () => {
     },
   );
 
-  itIfSiblingCheckout.each(skillKeys)(
+  itIfSiblingCheckout.each(Object.keys(preRepin))(
     "%s still resolves every pin it shipped before the re-pin",
     (key) => {
       const { path } = preRepin[key];

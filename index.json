@@ -65,8 +65,8 @@
     "roleplane/competitor-analysis": {
       "kind": "skill",
       "repo": "roleplane/roleplane",
-      "path": "skills/roleplane/competitor-scan.md",
-      "description": "Scan the competitive landscape for a product and write positioning notes.",
+      "path": "templates/teams/market-research/skills/competitor-analysis.md",
+      "description": "A framework for analyzing a competitor and finding a differentiation angle.",
       "tags": [
         "research",
         "competitors"
@@ -75,10 +75,22 @@
         {
           "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
           "version": "1.0.0"
-        },
+        }
+      ]
+    },
+    "roleplane/competitor-scan": {
+      "kind": "skill",
+      "repo": "roleplane/roleplane",
+      "path": "skills/roleplane/competitor-scan.md",
+      "description": "Scan the competitive landscape for a product and write positioning notes.",
+      "tags": [
+        "research",
+        "competitors"
+      ],
+      "history": [
         {
           "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
-          "version": "2.0.0"
+          "version": "1.0.0"
         }
       ]
     },

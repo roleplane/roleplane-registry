@@ -1,0 +1,16 @@
+{
+  "kind": "skill",
+  "repo": "roleplane/roleplane",
+  "path": "skills/roleplane/competitor-scan.md",
+  "description": "Scan the competitive landscape for a product and write positioning notes.",
+  "tags": [
+    "research",
+    "competitors"
+  ],
+  "history": [
+    {
+      "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
+      "version": "1.0.0"
+    }
+  ]
+}
