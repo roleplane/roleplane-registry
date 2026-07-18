@@ -1,7 +1,7 @@
 {
   "kind": "skill",
   "repo": "roleplane/roleplane",
-  "path": "templates/teams/onboarding/skills/interview-method.md",
+  "path": "skills/roleplane/interview-method.md",
   "description": "How to run a short founder interview that yields a usable brief.",
   "tags": [
     "onboarding",
@@ -11,6 +11,10 @@
     {
       "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
       "version": "1.0.0"
+    },
+    {
+      "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
+      "version": "2.0.0"
     }
   ]
 }

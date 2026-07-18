@@ -4,7 +4,7 @@
     "roleplane/blog-craft": {
       "kind": "skill",
       "repo": "roleplane/roleplane",
-      "path": "templates/teams/content/skills/blog-craft.md",
+      "path": "skills/roleplane/blog-craft.md",
       "description": "How to write a blog post people finish reading.",
       "tags": [
         "writing",
@@ -14,13 +14,17 @@
         {
           "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
           "version": "1.0.0"
+        },
+        {
+          "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
+          "version": "2.0.0"
         }
       ]
     },
     "roleplane/business-critique": {
       "kind": "skill",
       "repo": "roleplane/roleplane",
-      "path": "templates/teams/business-planning/skills/business-critique.md",
+      "path": "skills/roleplane/business-critique.md",
       "description": "How to pressure-test a business plan — find the load-bearing assumption and what to test first.",
       "tags": [
         "business",
@@ -31,13 +35,17 @@
         {
           "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
           "version": "1.0.0"
+        },
+        {
+          "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
+          "version": "2.0.0"
         }
       ]
     },
     "roleplane/canvas-method": {
       "kind": "skill",
       "repo": "roleplane/roleplane",
-      "path": "templates/teams/business-planning/skills/canvas-method.md",
+      "path": "skills/roleplane/canvas-method.md",
       "description": "How to fill a business-model canvas — the nine blocks and the order that makes them cohere.",
       "tags": [
         "business",
@@ -47,14 +55,18 @@
         {
           "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
           "version": "1.0.0"
+        },
+        {
+          "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
+          "version": "2.0.0"
         }
       ]
     },
     "roleplane/competitor-analysis": {
       "kind": "skill",
       "repo": "roleplane/roleplane",
-      "path": "templates/teams/market-research/skills/competitor-analysis.md",
-      "description": "A framework for analyzing a competitor and finding a differentiation angle.",
+      "path": "skills/roleplane/competitor-scan.md",
+      "description": "Scan the competitive landscape for a product and write positioning notes.",
       "tags": [
         "research",
         "competitors"
@@ -63,13 +75,17 @@
         {
           "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
           "version": "1.0.0"
+        },
+        {
+          "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
+          "version": "2.0.0"
         }
       ]
     },
     "roleplane/content-editing": {
       "kind": "skill",
       "repo": "roleplane/roleplane",
-      "path": "templates/teams/content/skills/content-editing.md",
+      "path": "skills/roleplane/content-editing.md",
       "description": "How to edit content for clarity — cut, order, and keep the writer's voice.",
       "tags": [
         "writing",
@@ -79,13 +95,17 @@
         {
           "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
           "version": "1.0.0"
+        },
+        {
+          "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
+          "version": "2.0.0"
         }
       ]
     },
     "roleplane/conversion-copy": {
       "kind": "skill",
       "repo": "roleplane/roleplane",
-      "path": "templates/teams/marketing-launch/skills/conversion-copy.md",
+      "path": "skills/roleplane/conversion-copy.md",
       "description": "How to write landing copy that converts — hero, benefits, objections, one call to action.",
       "tags": [
         "marketing",
@@ -95,13 +115,17 @@
         {
           "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
           "version": "1.0.0"
+        },
+        {
+          "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
+          "version": "2.0.0"
         }
       ]
     },
     "roleplane/copy-editing": {
       "kind": "skill",
       "repo": "roleplane/roleplane",
-      "path": "templates/teams/marketing-launch/skills/copy-editing.md",
+      "path": "skills/roleplane/copy-editing.md",
       "description": "How to edit copy — cut, sharpen, and keep the writer's voice.",
       "tags": [
         "marketing",
@@ -111,13 +135,17 @@
         {
           "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
           "version": "1.0.0"
+        },
+        {
+          "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
+          "version": "2.0.0"
         }
       ]
     },
     "roleplane/how-to-writing": {
       "kind": "skill",
       "repo": "roleplane/roleplane",
-      "path": "templates/teams/content/skills/how-to-writing.md",
+      "path": "skills/roleplane/how-to-writing.md",
       "description": "How to write a step-by-step guide a beginner can actually follow.",
       "tags": [
         "writing",
@@ -127,13 +155,17 @@
         {
           "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
           "version": "1.0.0"
+        },
+        {
+          "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
+          "version": "2.0.0"
         }
       ]
     },
     "roleplane/interview-method": {
       "kind": "skill",
       "repo": "roleplane/roleplane",
-      "path": "templates/teams/onboarding/skills/interview-method.md",
+      "path": "skills/roleplane/interview-method.md",
       "description": "How to run a short founder interview that yields a usable brief.",
       "tags": [
         "onboarding",
@@ -143,13 +175,17 @@
         {
           "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
           "version": "1.0.0"
+        },
+        {
+          "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
+          "version": "2.0.0"
         }
       ]
     },
     "roleplane/launch-writing": {
       "kind": "skill",
       "repo": "roleplane/roleplane",
-      "path": "templates/teams/marketing-launch/skills/launch-writing.md",
+      "path": "skills/roleplane/launch-writing.md",
       "description": "How to write a launch announcement people finish reading.",
       "tags": [
         "marketing",
@@ -159,13 +195,17 @@
         {
           "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
           "version": "1.0.0"
+        },
+        {
+          "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
+          "version": "2.0.0"
         }
       ]
     },
     "roleplane/newsletter-writing": {
       "kind": "skill",
       "repo": "roleplane/roleplane",
-      "path": "templates/teams/content/skills/newsletter-writing.md",
+      "path": "skills/roleplane/newsletter-writing.md",
       "description": "How to write an email newsletter issue people open and finish.",
       "tags": [
         "writing",
@@ -176,13 +216,17 @@
         {
           "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
           "version": "1.0.0"
+        },
+        {
+          "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
+          "version": "2.0.0"
         }
       ]
     },
     "roleplane/positioning-method": {
       "kind": "skill",
       "repo": "roleplane/roleplane",
-      "path": "templates/teams/marketing-launch/skills/positioning-method.md",
+      "path": "skills/roleplane/positioning-method.md",
       "description": "A method for positioning a product — alternatives, unique value, best-fit customer, category.",
       "tags": [
         "marketing",
@@ -192,13 +236,17 @@
         {
           "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
           "version": "1.0.0"
+        },
+        {
+          "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
+          "version": "2.0.0"
         }
       ]
     },
     "roleplane/pricing-strategy": {
       "kind": "skill",
       "repo": "roleplane/roleplane",
-      "path": "templates/teams/business-planning/skills/pricing-strategy.md",
+      "path": "skills/roleplane/pricing-strategy.md",
       "description": "How to explore pricing — value-based anchors, models, and the trade-offs of each.",
       "tags": [
         "business",
@@ -208,13 +256,17 @@
         {
           "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
           "version": "1.0.0"
+        },
+        {
+          "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
+          "version": "2.0.0"
         }
       ]
     },
     "roleplane/research-writing": {
       "kind": "skill",
       "repo": "roleplane/roleplane",
-      "path": "templates/teams/market-research/skills/research-writing.md",
+      "path": "skills/roleplane/research-writing.md",
       "description": "How to write research a busy founder can act on.",
       "tags": [
         "research",
@@ -224,13 +276,17 @@
         {
           "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
           "version": "1.0.0"
+        },
+        {
+          "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
+          "version": "2.0.0"
         }
       ]
     },
     "roleplane/source-vetting": {
       "kind": "skill",
       "repo": "roleplane/roleplane",
-      "path": "templates/teams/content/skills/source-vetting.md",
+      "path": "skills/roleplane/source-vetting.md",
       "description": "How to judge whether a source is trustworthy enough to cite.",
       "tags": [
         "research",
@@ -240,6 +296,10 @@
         {
           "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
           "version": "1.0.0"
+        },
+        {
+          "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
+          "version": "2.0.0"
         }
       ]
     }

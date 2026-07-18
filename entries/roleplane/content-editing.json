@@ -1,8 +1,8 @@
 {
   "kind": "skill",
   "repo": "roleplane/roleplane",
-  "path": "templates/teams/content/skills/content-editing.md",
-  "description": "How to edit content for clarity — cut, order, and keep the writer's voice.",
+  "path": "skills/roleplane/content-editing.md",
+  "description": "How to edit content for clarity \u2014 cut, order, and keep the writer's voice.",
   "tags": [
     "writing",
     "editing"
@@ -11,6 +11,10 @@
     {
       "sha": "d5cc9e8e33c86977de9a532eb3c4ef0f05d8446b",
       "version": "1.0.0"
+    },
+    {
+      "sha": "da1360269dec565cb21cd2f3450f79a6bf9b07f6",
+      "version": "2.0.0"
     }
   ]
 }
