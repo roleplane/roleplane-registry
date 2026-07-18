@@ -35,6 +35,16 @@ const entries = new Map<string, IndexEntry>(
 );
 
 /**
+ * #70 covers the shipped *skill* entries only. The author also publishes agents
+ * (pinned under `agents/roleplane/`), which this re-pin leaves alone — so every
+ * assertion below scopes to kind: skill rather than to the whole author
+ * namespace, which would otherwise break each time an agent is published.
+ */
+const skillKeys = [...entries]
+  .filter(([, e]) => e.kind === "skill")
+  .map(([key]) => key);
+
+/**
  * The base branch this re-pin is measured against. A shallow CI checkout has
  * no remote-tracking ref, so fall back through the local branch — and fail
  * loudly rather than silently treating "ref missing" as "entry is new",
@@ -113,8 +123,8 @@ const host: ContentHost = {
 const latest = (e: IndexEntry) => e.history[e.history.length - 1];
 
 describe("roleplane re-pin to skills/roleplane/", () => {
-  it("ships exactly the 15 known entries", () => {
-    expect(names).toHaveLength(15);
+  it("ships exactly the 15 known skill entries", () => {
+    expect(skillKeys).toHaveLength(15);
   });
 
   it("has no kind: team entries left in the index", () => {
@@ -122,12 +132,12 @@ describe("roleplane re-pin to skills/roleplane/", () => {
     expect(teams).toEqual([]);
   });
 
-  it.each([...entries.keys()])("%s pins to skills/roleplane/", (key) => {
+  it.each(skillKeys)("%s pins to skills/roleplane/", (key) => {
     const entry = entries.get(key)!;
     expect(entry.path).toMatch(/^skills\/roleplane\/[a-z0-9-]+\.md$/);
   });
 
-  it.each([...entries.keys()])("%s keeps history append-only", (key) => {
+  it.each(skillKeys)("%s keeps history append-only", (key) => {
     const entry = entries.get(key)!;
     const base = baseEntry(key.split("/")[1]);
     expect(base, "entry must already exist on main").toBeDefined();
@@ -141,7 +151,7 @@ describe("roleplane re-pin to skills/roleplane/", () => {
     expect(new Set(versions).size).toBe(versions.length);
   });
 
-  itWithSource.each([...entries.keys()])(
+  itWithSource.each(skillKeys)(
     "%s resolves real content at its pinned sha",
     async (key) => {
       const entry = entries.get(key)!;
@@ -157,7 +167,7 @@ describe("roleplane re-pin to skills/roleplane/", () => {
     },
   );
 
-  itWithSource.each([...entries.keys()])(
+  itWithSource.each(skillKeys)(
     "%s validates green at its new pin",
     async (key) => {
       const entry = entries.get(key)!;
@@ -175,7 +185,7 @@ describe("roleplane re-pin to skills/roleplane/", () => {
     },
   );
 
-  itWithSource.each([...entries.keys()])(
+  itWithSource.each(skillKeys)(
     "%s keeps its old pin resolvable",
     async (key) => {
       const entry = entries.get(key)!;
